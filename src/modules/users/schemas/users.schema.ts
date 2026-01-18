@@ -4,7 +4,7 @@ import {Roles} from "../../roles/schemas/roles.schema";
 
 @Schema({timestamps: true})
 export class Users {
-    _id: Types.ObjectId;
+    _id?: Types.ObjectId;
 
     @Prop({
         type: String,
@@ -41,13 +41,19 @@ export class Users {
         type: Boolean,
         default: true,
     })
-    isActive: boolean;
+    isActive?: boolean;
 
     @Prop({
         type: String,
         required: false,
     })
-    profilePic: string;
+    profilePic?: string;
+
+    @Prop({
+        type: String,
+        required: false,
+    })
+    refreshToken?: string;
 
     @Prop({
         type: [Types.ObjectId],
