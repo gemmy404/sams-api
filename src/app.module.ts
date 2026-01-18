@@ -3,6 +3,7 @@ import {RolesModule} from './modules/roles/roles.module';
 import {UsersModule} from './modules/users/users.module';
 import {MongooseModule} from "@nestjs/mongoose";
 import {ConfigModule, ConfigService} from "@nestjs/config";
+import {CacheModule} from './modules/cache/cache.module';
 
 @Module({
     imports: [
@@ -16,10 +17,9 @@ import {ConfigModule, ConfigService} from "@nestjs/config";
             inject: [ConfigService]
         }),
         RolesModule,
-        UsersModule
+        UsersModule,
+        CacheModule
     ],
-    controllers: [],
-    providers: [],
 })
 export class AppModule {
 }
