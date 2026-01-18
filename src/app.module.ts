@@ -1,6 +1,6 @@
 import {Module} from '@nestjs/common';
-import {RolesModule} from './roles/roles.module';
-import {UsersModule} from './users/users.module';
+import {RolesModule} from './modules/roles/roles.module';
+import {UsersModule} from './modules/users/users.module';
 import {MongooseModule} from "@nestjs/mongoose";
 import {ConfigModule, ConfigService} from "@nestjs/config";
 
