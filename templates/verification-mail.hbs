@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>{{subject}}</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f9f9f9;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 500px;
+            margin: 40px auto;
+            background: #ffffff;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            border: 1px solid #eee;
+        }
+        .header {
+            background: #10b981;
+            color: white;
+            text-align: center;
+            padding: 30px 20px;
+            font-size: 24px;
+            font-weight: bold;
+        }
+        .content {
+            padding: 30px;
+            color: #444;
+            font-size: 16px;
+            line-height: 1.6;
+            text-align: center;
+        }
+        .code-container {
+            margin: 30px 0;
+        }
+        .code {
+            display: inline-block;
+            padding: 15px 30px;
+            font-size: 32px;
+            font-weight: bold;
+            letter-spacing: 8px;
+            color: #10b981;
+            background: #f0fdf4;
+            border: 2px dashed #10b981;
+            border-radius: 10px;
+        }
+        .footer {
+            text-align: center;
+            font-size: 13px;
+            color: #999;
+            padding: 20px;
+            background: #fafafa;
+            border-top: 1px solid #eee;
+        }
+        .expiry-note {
+            font-size: 14px;
+            color: #666;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        {{subject}}
+    </div>
+    <div class="content">
+        <p style="font-size: 18px; font-weight: 500;">Hello, {{name}}</p>
+        <p>{{message}}</p>
+
+        <div class="code-container">
+            <div class="code">{{otp}}</div>
+        </div>
+
+        <p class="expiry-note">
+            This code is valid for <strong>{{timeInMin}} minutes</strong>.
+            <br>
+            If you didn't request this, please ignore this email.
+        </p>
+    </div>
+    <div class="footer">
+        &copy; 2026 O6U Support Team. All rights reserved.
+    </div>
+</div>
+</body>
+</html>

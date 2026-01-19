@@ -9,7 +9,6 @@ export class Users {
     @Prop({
         type: String,
         required: true,
-        unique: true,
         minlength: [6, 'Name must be at least 6 characters'],
         maxlength: [30, 'Name must not be more than 30 characters'],
     })

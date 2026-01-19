@@ -1,0 +1,6 @@
+export const MAIL_CONFIG = {
+    MAIL_HOST: 'MAIL_HOST',
+    MAIL_PORT: 'MAIL_PORT',
+    MAIL_USER: 'MAIL_USER',
+    MAIL_PASS: 'MAIL_PASS',
+}

@@ -1,0 +1,4 @@
+export enum VerificationType {
+    ACTIVATE_ACCOUNT = 'ACTIVATE_ACCOUNT',
+    RESET_PASSWORD = 'RESET_PASSWORD',
+}
