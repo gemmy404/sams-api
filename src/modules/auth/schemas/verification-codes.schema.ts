@@ -15,16 +15,10 @@ export class VerificationCode {
     code: string;
 
     @Prop({
-        type: Boolean,
-        required: true,
-    })
-    isValid: boolean;
-
-    @Prop({
         type: Date,
         required: false,
     })
-    usedAt: Date;
+    usedAt?: Date;
 
     @Prop({
         type: Date,
