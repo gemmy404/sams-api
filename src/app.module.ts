@@ -5,6 +5,9 @@ import {MongooseModule} from "@nestjs/mongoose";
 import {ConfigModule, ConfigService} from "@nestjs/config";
 import {AuthModule} from "./modules/auth/auth.module";
 import {CacheModule} from './modules/cache/cache.module';
+import {MailModule} from './modules/mail/mail.module';
+import {BullModule} from "@nestjs/bullmq";
+import {CACHE_CONFIG} from "./common/constants/cache.constant";
 
 @Module({
     imports: [
@@ -17,10 +20,20 @@ import {CacheModule} from './modules/cache/cache.module';
             }),
             inject: [ConfigService]
         }),
+        BullModule.forRootAsync({
+            useFactory: (configService: ConfigService) => ({
+                connection: {
+                    host: configService.getOrThrow(CACHE_CONFIG.REDIS_HOST),
+                    port: configService.getOrThrow(CACHE_CONFIG.REDIS_PORT),
+                },
+            }),
+            inject: [ConfigService],
+        }),
         RolesModule,
         UsersModule,
         AuthModule,
         CacheModule,
+        MailModule
     ],
     providers: [
         {
