@@ -1,8 +1,9 @@
-import {Module} from '@nestjs/common';
+import {Module, ValidationPipe} from '@nestjs/common';
 import {RolesModule} from './modules/roles/roles.module';
 import {UsersModule} from './modules/users/users.module';
 import {MongooseModule} from "@nestjs/mongoose";
 import {ConfigModule, ConfigService} from "@nestjs/config";
+import {AuthModule} from "./modules/auth/auth.module";
 import {CacheModule} from './modules/cache/cache.module';
 
 @Module({
@@ -18,7 +19,18 @@ import {CacheModule} from './modules/cache/cache.module';
         }),
         RolesModule,
         UsersModule,
-        CacheModule
+        AuthModule,
+        CacheModule,
+    ],
+    providers: [
+        {
+            provide: 'APP_PIPE',
+            useValue: new ValidationPipe({
+                whitelist: true,
+                forbidNonWhitelisted: true,
+                transform: true,
+            }),
+        },
     ],
 })
 export class AppModule {
