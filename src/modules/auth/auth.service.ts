@@ -1,4 +1,4 @@
-import {BadRequestException, Injectable, UnauthorizedException} from '@nestjs/common';
+import {BadRequestException, Injectable, NotFoundException, UnauthorizedException} from '@nestjs/common';
 import {LoginRequestDto} from "./dto/login-request.dto";
 import {UsersRepository} from "../users/users.repository";
 import {compare, hash} from "bcryptjs";
@@ -24,6 +24,10 @@ import {SendMailDto} from "../mail/dto/send-mail.dto";
 import {VerificationType} from "./enums/verification-type.enum";
 import {InjectQueue} from "@nestjs/bullmq";
 import {Queue} from "bullmq";
+import {ForgotPasswordRequestDto} from "./dto/forgot-password-request.dto";
+import {ResetPasswordRequestDto} from "./dto/reset-password-request.dto";
+import {MAIL_CONTENT} from "../../common/constants/mail-message.constant";
+import {ResendCodeRequestDto} from "./dto/resend-code-request.dto";
 
 @Injectable()
 export class AuthService {
@@ -57,9 +61,8 @@ export class AuthService {
         const mailDetails: SendMailDto = {
             to: registerDto.academicEmail,
             name: registerDto.name,
-            subject: 'Welcome to O6U - Verify Your Academic Email',
-            message: 'Welcome to October 6 University! To activate your account,' +
-                ' please use the following verification code:',
+            subject: MAIL_CONTENT.ACTIVATION.SUBJECT,
+            message: MAIL_CONTENT.ACTIVATION.MESSAGE,
             otp: otp,
             timeInMin: 5,
         };
@@ -97,7 +100,7 @@ export class AuthService {
         if (verifyCodeRequest.action === VerificationType.ACTIVATE_ACCOUNT) {
             return await this.verifyRegistration(verifyCodeRequest, role);
         } else if (verifyCodeRequest.action === VerificationType.RESET_PASSWORD) {
-            // Reset password flow
+            return await this.verifyResetPasswordCode(verifyCodeRequest);
         }
     }
 
@@ -126,6 +129,98 @@ export class AuthService {
         };
 
         return appResponse;
+    }
+
+    async logout(currentUserDto: CurrentUserDto) {
+        const savedUser = await this.usersRepository.findUser({_id: currentUserDto._id});
+        if (!savedUser) {
+            throw new UnauthorizedException('User does not exist');
+        }
+
+        await this.usersRepository.updateUser({_id: currentUserDto._id}, {
+            $set: {
+                refreshToken: null
+            }
+        });
+
+        const appResponse: AppResponseDto<null> = {
+            status: HttpStatusText.SUCCESS,
+            message: 'Logged out successfully',
+            data: null
+        }
+
+        return appResponse;
+    }
+
+    async forgotPassword(forgotPasswordRequest: ForgotPasswordRequestDto) {
+        const savedUser = await this.usersRepository.findUser({
+            academicEmail: forgotPasswordRequest.academicEmail
+        });
+        if (!savedUser) {
+            throw new NotFoundException('The email that you\'ve entered is incorrect');
+        }
+
+        const resetCode = generateOtp();
+        const expiresAt = new Date();
+        expiresAt.setTime(expiresAt.getTime() + 300000);
+
+        const mailDetails: SendMailDto = {
+            to: savedUser.academicEmail,
+            name: savedUser.name,
+            subject: MAIL_CONTENT.RESET_PASSWORD.SUBJECT,
+            message: MAIL_CONTENT.RESET_PASSWORD.MESSAGE,
+            otp: resetCode,
+            timeInMin: 5,
+        };
+        await this.mailQueue.add('sendOtpEmail', mailDetails, {
+            attempts: 3,
+            backoff: 3000,
+            removeOnComplete: true,
+        });
+
+        await this.verificationCodeModel.create({
+            code: resetCode,
+            expiresAt: expiresAt,
+            type: VerificationType.RESET_PASSWORD,
+            user: savedUser._id,
+        });
+
+        const appResponse: AppResponseDto<null> = {
+            status: HttpStatusText.SUCCESS,
+            data: null
+        }
+        return appResponse;
+    }
+
+    async resetPassword(resetPasswordRequest: ResetPasswordRequestDto) {
+        if (resetPasswordRequest.newPassword !== resetPasswordRequest.confirmNewPassword) {
+            throw new BadRequestException('Passwords do not match');
+        }
+
+        let payload: CurrentUserDto;
+        try {
+            payload = await this.jwtService.verifyAsync(resetPasswordRequest.resetToken);
+        } catch (error) {
+            throw new BadRequestException(`Reset password fail: ${error.message}`);
+        }
+
+        const hashedNewPassword = await hash(resetPasswordRequest.newPassword, 10);
+        await this.usersRepository.updateUser({_id: payload._id}, {password: hashedNewPassword});
+
+        const appResponse: AppResponseDto<null> = {
+            status: HttpStatusText.SUCCESS,
+            message: 'Password reset successful! You can now log in with your new password',
+            data: null
+        };
+        return appResponse;
+    }
+
+    async resendVerificationCode(resendCodeRequest: ResendCodeRequestDto) {
+        if (resendCodeRequest.action === VerificationType.ACTIVATE_ACCOUNT) {
+            return await this.resendCodeInRegistration(resendCodeRequest.academicEmail);
+        } else if (resendCodeRequest.action === VerificationType.RESET_PASSWORD) {
+            return await this.forgotPassword({academicEmail: resendCodeRequest.academicEmail});
+        }
     }
 
     private async verifyRegistration(verifyCodeRequest: VerifyCodeRequestDto, role: Roles) {
@@ -176,6 +271,44 @@ export class AuthService {
         return appResponse;
     }
 
+    private async verifyResetPasswordCode(verifyCodeRequest: VerifyCodeRequestDto) {
+        const savedUser = await this.usersRepository.findUser({
+            academicEmail: verifyCodeRequest.academicEmail
+        });
+        if (!savedUser) {
+            throw new NotFoundException('The email that you\'ve entered is incorrect');
+        }
+
+        const savedCode = await this.verificationCodeModel.findOne({
+            code: verifyCodeRequest.code,
+            user: savedUser._id,
+        });
+        if (!savedCode) {
+            throw new NotFoundException('The code that you\'ve entered is incorrect');
+        }
+
+        if (savedCode.expiresAt.getTime() < Date.now() || savedCode.usedAt) {
+            throw new BadRequestException('The code is expired or already used')
+        }
+
+        savedCode.usedAt = new Date();
+        await savedCode.save();
+
+        const tokenPayload = {
+            _id: savedUser._id.toString(),
+            academicEmail: savedUser.academicEmail,
+        }
+
+        const resetToken: string = this.jwtService.sign(tokenPayload, {expiresIn: '5m'});
+
+        const appResponse: AppResponseDto<{ resetToken: string }> = {
+            status: HttpStatusText.SUCCESS,
+            data: {resetToken}
+        };
+
+        return appResponse;
+    }
+
     async issueTokens(payload: CurrentUserDto) {
         const expiresAccessToken = new Date();
         expiresAccessToken.setTime(
@@ -210,4 +343,39 @@ export class AuthService {
         };
     }
 
+    private async resendCodeInRegistration(academicEmail: string) {
+        const user = await this.usersRepository.findUser({
+            academicEmail: academicEmail,
+        });
+        if (user) {
+            throw new BadRequestException('Email already exists');
+        }
+
+        const cacheKey: string = `register:${academicEmail}`;
+
+        const cachedUser = await this.cacheService
+            .findItemByCacheKey(cacheKey) as CachedUserDto;
+        if (!cachedUser) {
+            throw new UnauthorizedException('Session expired, please register again');
+        }
+
+        cachedUser.otp.code = generateOtp();
+        cachedUser.otp.expiresIn = Date.now() + 300000;
+
+        const mailDetails: SendMailDto = {
+            to: academicEmail,
+            name: cachedUser.name,
+            subject: MAIL_CONTENT.ACTIVATION.SUBJECT,
+            message: MAIL_CONTENT.ACTIVATION.MESSAGE,
+            otp: cachedUser.otp.code,
+            timeInMin: 5,
+        };
+        await this.mailQueue.add('sendOtpEmail', mailDetails, {
+            attempts: 3,
+            backoff: 3000,
+            removeOnComplete: true,
+        });
+
+        await this.cacheService.createItem(`register:${academicEmail}`, cachedUser, 300000);
+    }
 }
