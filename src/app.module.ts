@@ -8,6 +8,7 @@ import {CacheModule} from './modules/cache/cache.module';
 import {MailModule} from './modules/mail/mail.module';
 import {BullModule} from "@nestjs/bullmq";
 import {CACHE_CONFIG} from "./common/constants/cache.constant";
+import {ValidationException} from "./common/exceptions/validation.exception";
 
 @Module({
     imports: [
@@ -42,6 +43,13 @@ import {CACHE_CONFIG} from "./common/constants/cache.constant";
                 whitelist: true,
                 forbidNonWhitelisted: true,
                 transform: true,
+                    exceptionFactory: (errors) => {
+                        const messages = errors.flatMap(err =>
+                            Object.values(err.constraints ?? {})
+                        );
+
+                        return new ValidationException(messages, 400);
+                    },
             }),
         },
     ],
