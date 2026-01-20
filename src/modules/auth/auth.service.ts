@@ -1,4 +1,4 @@
-import {BadRequestException, Injectable, NotFoundException, UnauthorizedException} from '@nestjs/common';
+import {BadRequestException, Injectable, UnauthorizedException} from '@nestjs/common';
 import {LoginRequestDto} from "./dto/login-request.dto";
 import {UsersRepository} from "../users/users.repository";
 import {compare, hash} from "bcryptjs";
@@ -158,7 +158,7 @@ export class AuthService {
             academicEmail: forgotPasswordRequest.academicEmail
         });
         if (!savedUser) {
-            throw new NotFoundException('The email that you\'ve entered is incorrect');
+            throw new UnauthorizedException('The email that you\'ve entered is incorrect');
         }
 
         const resetCode = generateOtp();
@@ -311,7 +311,7 @@ export class AuthService {
             academicEmail: verifyCodeRequest.academicEmail
         });
         if (!savedUser) {
-            throw new NotFoundException('The email that you\'ve entered is incorrect');
+            throw new UnauthorizedException('The email that you\'ve entered is incorrect');
         }
 
         const savedCode = await this.verificationCodeModel.findOne({
@@ -319,7 +319,7 @@ export class AuthService {
             user: savedUser._id,
         });
         if (!savedCode) {
-            throw new NotFoundException('The code that you\'ve entered is incorrect');
+            throw new UnauthorizedException('The code that you\'ve entered is incorrect');
         }
 
         if (savedCode.expiresAt.getTime() < Date.now() || savedCode.usedAt) {
@@ -352,17 +352,19 @@ export class AuthService {
             )
         );
 
+        const roles = payload.roles.map((role: any) => role.name) as string[];
+
         const tokenPayload: CurrentUserDto = {
             _id: payload._id,
             academicEmail: payload.academicEmail,
-            roles: payload.roles
+            roles: roles
         }
 
         const accessToken: string = this.jwtService.sign(tokenPayload);
 
         const refreshToken: string = this.jwtService.sign(tokenPayload, {
             secret: this.configService.getOrThrow(JWT_CONFIG.REFRESH_TOKEN_SECRET),
-            expiresIn: `${this.configService.getOrThrow(JWT_CONFIG.ACCESS_TOKEN_EXPIRATION)}ms`
+            expiresIn: `${this.configService.getOrThrow(JWT_CONFIG.REFRESH_TOKEN_EXPIRATION)}ms`
         });
 
         await this.usersRepository.updateUser({_id: payload._id}, {
