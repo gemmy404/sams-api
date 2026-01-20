@@ -12,6 +12,7 @@ import {CacheModule} from "../cache/cache.module";
 import {MongooseModule} from "@nestjs/mongoose";
 import {VerificationCode, VerificationCodeSchema} from "./schemas/verification-codes.schema";
 import {MailModule} from "../mail/mail.module";
+import {JwtStrategy} from "./strategies/jwt.strategy";
 
 @Module({
     imports: [
@@ -35,7 +36,7 @@ import {MailModule} from "../mail/mail.module";
         MailModule,
     ],
     controllers: [AuthController],
-    providers: [AuthService, AuthMapper],
+    providers: [AuthService, AuthMapper, JwtStrategy],
 })
 export class AuthModule {
 }
