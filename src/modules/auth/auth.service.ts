@@ -28,6 +28,7 @@ import {ForgotPasswordRequestDto} from "./dto/forgot-password-request.dto";
 import {ResetPasswordRequestDto} from "./dto/reset-password-request.dto";
 import {MAIL_CONTENT} from "../../common/constants/mail-message.constant";
 import {ResendCodeRequestDto} from "./dto/resend-code-request.dto";
+import {RefreshTokenRequestDto} from "./dto/refresh-token-request.dto";
 
 @Injectable()
 export class AuthService {
@@ -223,6 +224,40 @@ export class AuthService {
         }
     }
 
+    async refreshToken(refreshTokenRequest: RefreshTokenRequestDto) {
+        let decoded: CurrentUserDto;
+        try {
+            decoded = await this.jwtService.verifyAsync(refreshTokenRequest.refreshToken, {
+                secret: this.configService.getOrThrow(JWT_CONFIG.REFRESH_TOKEN_SECRET)
+            });
+        } catch (error) {
+            throw new UnauthorizedException(`Refresh token fail: ${error.message}`);
+        }
+
+        const savedUser = await this.usersRepository.findUserWithRoles({_id: decoded._id});
+        if (!savedUser || !savedUser.refreshToken) {
+            throw new UnauthorizedException('Invalid or expired refresh token');
+        }
+
+        if (!(await compare(refreshTokenRequest.refreshToken, savedUser.refreshToken))) {
+            throw new UnauthorizedException('Invalid refresh token');
+        }
+
+        const payload: CurrentUserDto = {
+            _id: savedUser._id.toString(),
+            academicEmail: savedUser.academicEmail,
+            roles: savedUser.roles,
+        };
+        const tokens = await this.issueTokens(payload);
+
+        const appResponse: AppResponseDto<LoginResponseDto> = {
+            status: HttpStatusText.SUCCESS,
+            data: this.authMapper.toLoginResponse(tokens, savedUser),
+        };
+
+        return appResponse;
+    }
+
     private async verifyRegistration(verifyCodeRequest: VerifyCodeRequestDto, role: Roles) {
         const user = await this.usersRepository.findUser({
             academicEmail: verifyCodeRequest.academicEmail,
@@ -309,7 +344,7 @@ export class AuthService {
         return appResponse;
     }
 
-    async issueTokens(payload: CurrentUserDto) {
+    private async issueTokens(payload: CurrentUserDto) {
         const expiresAccessToken = new Date();
         expiresAccessToken.setTime(
             expiresAccessToken.getTime() + Number(

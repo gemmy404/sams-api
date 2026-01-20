@@ -9,6 +9,7 @@ import {ResendCodeRequestDto} from "./dto/resend-code-request.dto";
 import {JwtAuthGuard} from "./guards/jwt-auth.guard";
 import {CurrentUser} from "../../common/decorators/current-user.decorator";
 import {CurrentUserDto} from "../../common/dto/current-user.dto";
+import {RefreshTokenRequestDto} from "./dto/refresh-token-request.dto";
 
 @Controller('api/v1/auth')
 export class AuthController {
@@ -55,5 +56,11 @@ export class AuthController {
     @HttpCode(HttpStatus.OK)
     resendVerificationCode(@Body() resendCodeRequest: ResendCodeRequestDto) {
         return this.authService.resendVerificationCode(resendCodeRequest);
+    }
+
+    @Post('refresh')
+    @HttpCode(HttpStatus.OK)
+    refreshToken(@Body() refreshTokenRequest: RefreshTokenRequestDto) {
+        return this.authService.refreshToken(refreshTokenRequest);
     }
 }
