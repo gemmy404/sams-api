@@ -4,15 +4,18 @@ import {UsersController} from './users.controller';
 import {MongooseModule} from "@nestjs/mongoose";
 import {Users, UserSchema} from "./schemas/users.schema";
 import {UsersRepository} from "./users.repository";
+import {UsersMapper} from "./users.mapper";
+import {S3Module} from "../s3/s3.module";
 
 @Module({
     imports: [
         MongooseModule.forFeature([
             {name: Users.name, schema: UserSchema},
-        ])
+        ]),
+        S3Module
     ],
     controllers: [UsersController],
-    providers: [UsersService, UsersRepository],
+    providers: [UsersService, UsersRepository, UsersMapper],
     exports: [UsersRepository],
 })
 export class UsersModule {
