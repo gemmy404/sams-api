@@ -9,6 +9,7 @@ import {MailModule} from './modules/mail/mail.module';
 import {BullModule} from "@nestjs/bullmq";
 import {CACHE_CONFIG} from "./common/constants/cache.constant";
 import {ValidationException} from "./common/exceptions/validation.exception";
+import { S3Module } from './modules/s3/s3.module';
 
 @Module({
     imports: [
@@ -34,7 +35,8 @@ import {ValidationException} from "./common/exceptions/validation.exception";
         UsersModule,
         AuthModule,
         CacheModule,
-        MailModule
+        MailModule,
+        S3Module
     ],
     providers: [
         {
