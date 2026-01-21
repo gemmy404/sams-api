@@ -60,6 +60,8 @@ export class Users {
         required: true,
     })
     roles: Types.ObjectId[];
+
+    updatedAt?: Date;
 }
 
 export const UserSchema = SchemaFactory.createForClass(Users);
