@@ -13,6 +13,10 @@ export class RolesRepository {
         return this.rolesModel.create({name: roleName});
     }
 
+    async findRoleByName(roleName: string) {
+        return this.rolesModel.findOne({name: roleName});
+    }
+
     async findAll() {
         return this.rolesModel.find({}, {__v: false});
     }

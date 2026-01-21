@@ -55,7 +55,6 @@ export class S3Service {
 
         try {
             await this.s3Client.send(new DeleteObjectCommand(params));
-            this.logger.log(`File deleted successfully with key: ${key}`);
         } catch (err) {
             this.logger.error('Error deleting file from S3', err.stack);
             throw err;
