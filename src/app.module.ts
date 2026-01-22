@@ -11,6 +11,7 @@ import {CACHE_CONFIG} from "./common/constants/cache.constant";
 import {ValidationException} from "./common/exceptions/validation.exception";
 import {S3Module} from './modules/s3/s3.module';
 import {SeederModule} from './modules/database/seeds/seeder.module';
+import {AdminModule} from "./modules/admin/admin.module";
 
 @Module({
     imports: [
@@ -38,7 +39,8 @@ import {SeederModule} from './modules/database/seeds/seeder.module';
         CacheModule,
         MailModule,
         S3Module,
-        SeederModule
+        SeederModule,
+        AdminModule,
     ],
     providers: [
         {

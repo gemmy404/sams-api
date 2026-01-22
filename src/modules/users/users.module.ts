@@ -6,17 +6,19 @@ import {Users, UserSchema} from "./schemas/users.schema";
 import {UsersRepository} from "./users.repository";
 import {UsersMapper} from "./users.mapper";
 import {S3Module} from "../s3/s3.module";
+import {RolesModule} from "../roles/roles.module";
 
 @Module({
     imports: [
         MongooseModule.forFeature([
             {name: Users.name, schema: UserSchema},
         ]),
-        S3Module
+        S3Module,
+        RolesModule
     ],
     controllers: [UsersController],
     providers: [UsersService, UsersRepository, UsersMapper],
-    exports: [UsersRepository],
+    exports: [UsersRepository, UsersMapper],
 })
 export class UsersModule {
 }
