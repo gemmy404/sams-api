@@ -2,6 +2,7 @@ import {BadRequestException, Injectable, UnauthorizedException} from '@nestjs/co
 import {LoginRequestDto} from "./dto/login-request.dto";
 import {UsersRepository} from "../users/users.repository";
 import {compare, hash} from "bcryptjs";
+import crypto from "crypto";
 import {JWT_CONFIG} from "../../common/constants/jwt.constant";
 import {CurrentUserDto} from "../../common/dto/current-user.dto";
 import {JwtService} from "@nestjs/jwt";
@@ -18,7 +19,7 @@ import {RolesRepository} from "../roles/roles.repository";
 import {Roles} from "../roles/schemas/roles.schema";
 import {InjectModel} from "@nestjs/mongoose";
 import {VerificationCode} from "./schemas/verification-codes.schema";
-import {Model} from "mongoose";
+import {isValidObjectId, Model} from "mongoose";
 import {generateOtp} from "../../common/utils/otp.util";
 import {SendMailDto} from "../mail/dto/send-mail.dto";
 import {VerificationType} from "./enums/verification-type.enum";
@@ -29,6 +30,7 @@ import {ResetPasswordRequestDto} from "./dto/reset-password-request.dto";
 import {MAIL_CONTENT} from "../../common/constants/mail-message.constant";
 import {ResendCodeRequestDto} from "./dto/resend-code-request.dto";
 import {RefreshTokenRequestDto} from "./dto/refresh-token-request.dto";
+import {RefreshToken} from "./schemas/refresh-token.schema";
 
 @Injectable()
 export class AuthService {
@@ -41,6 +43,7 @@ export class AuthService {
         private readonly jwtService: JwtService,
         private readonly cacheService: CacheService,
         @InjectModel(VerificationCode.name) private readonly verificationCodeModel: Model<VerificationCode>,
+        @InjectModel(RefreshToken.name) private readonly refreshTokenModel: Model<RefreshToken>,
         @InjectQueue('mail') private readonly mailQueue: Queue,
     ) {
     }
@@ -141,16 +144,10 @@ export class AuthService {
     }
 
     async logout(currentUserDto: CurrentUserDto) {
-        const savedUser = await this.usersRepository.findUser({_id: currentUserDto._id});
-        if (!savedUser) {
-            throw new UnauthorizedException('User does not exist');
+        const result = await this.refreshTokenModel.deleteOne({userId: currentUserDto._id});
+        if (result.deletedCount === 0) {
+            throw new UnauthorizedException('No active session found');
         }
-
-        await this.usersRepository.updateUser({_id: currentUserDto._id}, {
-            $set: {
-                refreshToken: null
-            }
-        });
 
         const appResponse: AppResponseDto<null> = {
             status: HttpStatusText.SUCCESS,
@@ -233,21 +230,26 @@ export class AuthService {
     }
 
     async refreshToken(refreshTokenRequest: RefreshTokenRequestDto) {
-        let decoded: CurrentUserDto;
-        try {
-            decoded = await this.jwtService.verifyAsync(refreshTokenRequest.refreshToken, {
-                secret: this.configService.getOrThrow(JWT_CONFIG.REFRESH_TOKEN_SECRET)
-            });
-        } catch (error) {
-            throw new UnauthorizedException(`Refresh token fail: ${error.message}`);
+        const [userId, refreshToken] = refreshTokenRequest.refreshToken.split('.');
+        if (!isValidObjectId(userId)) {
+            throw new UnauthorizedException('Session expired or invalid format');
         }
 
-        const savedUser = await this.usersRepository.findUserWithRoles({_id: decoded._id});
-        if (!savedUser || !savedUser.refreshToken) {
-            throw new UnauthorizedException('Invalid or expired refresh token');
+        const savedUser = await this.usersRepository.findUserWithRoles({_id: userId});
+        if (!savedUser) {
+            throw new UnauthorizedException('Identity could not be verified');
         }
 
-        if (!(await compare(refreshTokenRequest.refreshToken, savedUser.refreshToken))) {
+        const savedRefreshToken = await this.refreshTokenModel
+            .findOne({userId: userId});
+
+        if (
+            !savedRefreshToken ||
+            savedRefreshToken.expiresAt.getTime() < Date.now()
+        ) {
+            throw new UnauthorizedException('Session has expired, please login again');
+        }
+        if (!(await compare(refreshToken, savedRefreshToken.refreshToken))) {
             throw new UnauthorizedException('Invalid refresh token');
         }
 
@@ -370,20 +372,24 @@ export class AuthService {
 
         const accessToken: string = this.jwtService.sign(tokenPayload);
 
-        const refreshToken: string = this.jwtService.sign(tokenPayload, {
-            secret: this.configService.getOrThrow(JWT_CONFIG.REFRESH_TOKEN_SECRET),
-            expiresIn: `${this.configService.getOrThrow(JWT_CONFIG.REFRESH_TOKEN_EXPIRATION)}ms`
-        });
+        const refreshToken: string = crypto.randomBytes(24).toString('hex');
+        const expiresRefreshToken = new Date();
+        expiresRefreshToken.setTime(
+            expiresRefreshToken.getTime() + Number(
+                this.configService.getOrThrow(JWT_CONFIG.REFRESH_TOKEN_EXPIRATION)
+            )
+        );
 
-        await this.usersRepository.updateUser({_id: payload._id}, {
+        await this.refreshTokenModel.findOneAndUpdate({userId: payload._id}, {
             $set: {
-                refreshToken: await hash(refreshToken, 10)
-            }
-        });
+                refreshToken: await hash(refreshToken, 10),
+                expiresAt: expiresRefreshToken
+            },
+        }, {upsert: true});
 
         return {
             accessToken,
-            refreshToken,
+            refreshToken: `${payload._id}.${refreshToken}`,
             expiresIn: expiresAccessToken.getTime(),
         };
     }
