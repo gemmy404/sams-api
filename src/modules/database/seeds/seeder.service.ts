@@ -17,7 +17,7 @@ export class SeederService implements OnApplicationBootstrap {
         const rolesToCreate: string[] = ['student', 'instructor', 'admin'];
 
         for (const roleName of rolesToCreate) {
-            const exists = await this.rolesRepository.findRoleByName(roleName);
+            const exists = await this.rolesRepository.findRole({name: roleName});
 
             if (!exists) {
                 await this.rolesRepository.createRole(roleName);
