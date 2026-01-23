@@ -30,15 +30,15 @@ export class UsersRepository {
             .populate('roles', {name: true});
     }
 
-    async findUserByRole(size: number, skip: number, roleName?: string) {
-        let query: QueryFilter<Users> = {};
-        if (roleName) {
-            const role = await this.rolesRepository.findRoleByName(roleName);
-            query = {roles: role?._id}
-        }
-
+    async findAll(
+        query: QueryFilter<Users>,
+        sortBy: string, sortOrder: string, locale: string,
+        size: number, skip: number
+    ) {
         const [users, totalElements] = await Promise.all([
             this.usersModel.find(query)
+                .sort({[sortBy]: sortOrder === 'asc' ? 1 : -1})
+                .collation({locale: locale === 'ar' ? 'ar' : 'en', strength: 2})
                 .limit(size)
                 .skip(skip)
                 .populate('roles', {name: true}),
