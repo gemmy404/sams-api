@@ -49,12 +49,6 @@ export class Users {
     profilePic?: string;
 
     @Prop({
-        type: String,
-        required: false,
-    })
-    refreshToken?: string;
-
-    @Prop({
         type: [Types.ObjectId],
         ref: Roles.name,
         required: true,

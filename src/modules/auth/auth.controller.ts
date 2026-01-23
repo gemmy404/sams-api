@@ -31,7 +31,6 @@ export class AuthController {
     @UseGuards(JwtAuthGuard)
     @HttpCode(HttpStatus.OK)
     logout(@CurrentUser() currentUserDto: CurrentUserDto) {
-        console.log(currentUserDto);
         return this.authService.logout(currentUserDto);
     }
 

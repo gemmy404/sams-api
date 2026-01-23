@@ -13,11 +13,13 @@ import {MongooseModule} from "@nestjs/mongoose";
 import {VerificationCode, VerificationCodeSchema} from "./schemas/verification-codes.schema";
 import {MailModule} from "../mail/mail.module";
 import {JwtStrategy} from "./strategies/jwt.strategy";
+import {RefreshToken, RefreshTokenSchema} from "./schemas/refresh-token.schema";
 
 @Module({
     imports: [
         MongooseModule.forFeature([
             {name: VerificationCode.name, schema: VerificationCodeSchema},
+            {name: RefreshToken.name, schema: RefreshTokenSchema},
         ]),
         JwtModule.registerAsync({
             global: true,
