@@ -77,7 +77,8 @@ export class UsersService {
             _id: currentUser._id
         });
         if (savedUser && savedUser.profilePic) {
-            await this.s3Service.deleteFile(savedUser?.profilePic);
+            const key: string = new URL(savedUser.profilePic).pathname.substring(1);
+            await this.s3Service.deleteFile(key);
         }
 
         const displayUrl = `${this.baseCloudFrontUrl}/${key}`;

@@ -14,7 +14,6 @@ export class UsersController {
     }
 
     @Get('profile')
-    @UseGuards(JwtAuthGuard)
     getUserProfile(@CurrentUser() currentUser: CurrentUserDto) {
         return this.usersService.getUserProfile(currentUser);
     }

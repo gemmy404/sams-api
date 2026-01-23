@@ -1,7 +1,7 @@
 import {Injectable} from '@nestjs/common';
 import {InjectModel} from "@nestjs/mongoose";
 import {Roles} from "./schemas/roles.schema";
-import {Model} from "mongoose";
+import {Model, QueryFilter} from "mongoose";
 
 @Injectable()
 export class RolesRepository {
@@ -11,6 +11,10 @@ export class RolesRepository {
 
     async createRole(roleName: string) {
         return this.rolesModel.create({name: roleName});
+    }
+
+    async findRole(query: QueryFilter<Roles>) {
+        return this.rolesModel.findOne(query);
     }
 
     async findAll() {

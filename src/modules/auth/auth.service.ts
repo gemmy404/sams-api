@@ -46,11 +46,19 @@ export class AuthService {
     }
 
     async register(registerDto: RegisterRequestDto) {
+        if (registerDto.academicId !== registerDto.academicEmail.split('@')[0]) {
+            throw new BadRequestException('Academic ID must be identical to the prefix of your academic email')
+        }
+
         const user = await this.usersRepository.findUser({
-            academicEmail: registerDto.academicEmail
+            $or: [
+                {academicEmail: registerDto.academicEmail},
+                {academicId: registerDto.academicId},
+            ]
         });
         if (user) {
-            throw new BadRequestException('Email already exists');
+            throw new BadRequestException('It looks like you\'re already registered.' +
+                ' The email or Academic ID you entered is already in use');
         }
 
         if (registerDto.password !== registerDto.confirmPassword) {

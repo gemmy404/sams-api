@@ -9,7 +9,9 @@ import {MailModule} from './modules/mail/mail.module';
 import {BullModule} from "@nestjs/bullmq";
 import {CACHE_CONFIG} from "./common/constants/cache.constant";
 import {ValidationException} from "./common/exceptions/validation.exception";
-import { S3Module } from './modules/s3/s3.module';
+import {S3Module} from './modules/s3/s3.module';
+import {SeederModule} from './modules/database/seeds/seeder.module';
+import {AdminModule} from "./modules/admin/admin.module";
 
 @Module({
     imports: [
@@ -36,7 +38,9 @@ import { S3Module } from './modules/s3/s3.module';
         AuthModule,
         CacheModule,
         MailModule,
-        S3Module
+        S3Module,
+        SeederModule,
+        AdminModule,
     ],
     providers: [
         {
@@ -45,13 +49,13 @@ import { S3Module } from './modules/s3/s3.module';
                 whitelist: true,
                 forbidNonWhitelisted: true,
                 transform: true,
-                    exceptionFactory: (errors) => {
-                        const messages = errors.flatMap(err =>
-                            Object.values(err.constraints ?? {})
-                        );
+                exceptionFactory: (errors) => {
+                    const messages = errors.flatMap(err =>
+                        Object.values(err.constraints ?? {})
+                    );
 
-                        return new ValidationException(messages, 400);
-                    },
+                    return new ValidationException(messages, 400);
+                },
             }),
         },
     ],
