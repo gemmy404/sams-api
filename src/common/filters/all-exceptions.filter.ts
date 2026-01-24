@@ -39,7 +39,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
         }
 
         appResponse.status = HttpStatusText.ERROR;
-        appResponse.message = 'Internal server error';
+        appResponse.message = exception.message || 'Internal server error';
 
         if (exception.name === 'MongoServerSelectionError') {
             this.logger.error('[DATABASE]', exception.message);
