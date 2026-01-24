@@ -12,6 +12,8 @@ import {ValidationException} from "./common/exceptions/validation.exception";
 import {S3Module} from './modules/s3/s3.module';
 import {SeederModule} from './modules/database/seeds/seeder.module';
 import {AdminModule} from "./modules/admin/admin.module";
+import {CoursesModule} from './modules/courses/courses.module';
+import {InstructorModule} from "./modules/instructor/instructor.module";
 
 @Module({
     imports: [
@@ -41,6 +43,8 @@ import {AdminModule} from "./modules/admin/admin.module";
         S3Module,
         SeederModule,
         AdminModule,
+        CoursesModule,
+        InstructorModule,
     ],
     providers: [
         {
