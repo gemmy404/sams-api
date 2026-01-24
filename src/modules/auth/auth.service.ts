@@ -20,7 +20,7 @@ import {Roles} from "../roles/schemas/roles.schema";
 import {InjectModel} from "@nestjs/mongoose";
 import {VerificationCode} from "./schemas/verification-codes.schema";
 import {isValidObjectId, Model} from "mongoose";
-import {generateOtp} from "../../common/utils/otp.util";
+import {generateCodes} from "../../common/utils/generate-codes.util";
 import {SendMailDto} from "../mail/dto/send-mail.dto";
 import {VerificationType} from "./enums/verification-type.enum";
 import {InjectQueue} from "@nestjs/bullmq";
@@ -68,7 +68,7 @@ export class AuthService {
             throw new BadRequestException('Passwords do not match');
         }
 
-        const otp: string = generateOtp();
+        const otp: string = generateCodes();
 
         const mailDetails: SendMailDto = {
             to: registerDto.academicEmail,
@@ -166,7 +166,7 @@ export class AuthService {
             throw new UnauthorizedException('The email that you\'ve entered is incorrect');
         }
 
-        const resetCode = generateOtp();
+        const resetCode = generateCodes();
         const expiresAt = new Date();
         expiresAt.setTime(expiresAt.getTime() + 300000);
 
@@ -410,7 +410,7 @@ export class AuthService {
             throw new UnauthorizedException('Session expired, please register again');
         }
 
-        cachedUser.otp.code = generateOtp();
+        cachedUser.otp.code = generateCodes();
         cachedUser.otp.expiresIn = Date.now() + 300000;
 
         const mailDetails: SendMailDto = {
