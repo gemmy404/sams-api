@@ -14,6 +14,7 @@ import {SeederModule} from './modules/database/seeds/seeder.module';
 import {AdminModule} from "./modules/admin/admin.module";
 import {CoursesModule} from './modules/courses/courses.module';
 import {InstructorModule} from "./modules/instructor/instructor.module";
+import {EnrollmentsModule} from "./modules/enrollments/enrollments.module";
 
 @Module({
     imports: [
@@ -45,6 +46,7 @@ import {InstructorModule} from "./modules/instructor/instructor.module";
         AdminModule,
         CoursesModule,
         InstructorModule,
+        EnrollmentsModule
     ],
     providers: [
         {
