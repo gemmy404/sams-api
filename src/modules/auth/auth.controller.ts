@@ -10,6 +10,9 @@ import {JwtAuthGuard} from "./guards/jwt-auth.guard";
 import {CurrentUser} from "../../common/decorators/current-user.decorator";
 import {CurrentUserDto} from "../../common/dto/current-user.dto";
 import {RefreshTokenRequestDto} from "./dto/refresh-token-request.dto";
+import {ApiResponse} from "@nestjs/swagger";
+import {LoginResponseDto} from "./dto/login-response.dto";
+import {AppResponseDto} from "../../common/dto/app-response.dto";
 
 @Controller('api/v1/auth')
 export class AuthController {
@@ -17,26 +20,27 @@ export class AuthController {
     }
 
     @Post('register')
-    register(@Body() registerRequest: RegisterRequestDto) {
+    register(@Body() registerRequest: RegisterRequestDto): Promise<AppResponseDto<null>> {
         return this.authService.register(registerRequest);
     }
 
     @Post('login')
     @HttpCode(HttpStatus.OK)
-    login(@Body() loginRequest: LoginRequestDto) {
+    @ApiResponse({type: LoginResponseDto})
+    login(@Body() loginRequest: LoginRequestDto): Promise<AppResponseDto<LoginResponseDto>> {
         return this.authService.login(loginRequest);
     }
 
     @Post('logout')
     @UseGuards(JwtAuthGuard)
     @HttpCode(HttpStatus.OK)
-    logout(@CurrentUser() currentUserDto: CurrentUserDto) {
+    logout(@CurrentUser() currentUserDto: CurrentUserDto): Promise<AppResponseDto<null>> {
         return this.authService.logout(currentUserDto);
     }
 
     @Post('forgot-password')
     @HttpCode(HttpStatus.OK)
-    forgotPassword(@Body() forgotPasswordRequest: ForgotPasswordRequestDto) {
+    forgotPassword(@Body() forgotPasswordRequest: ForgotPasswordRequestDto): Promise<AppResponseDto<null>> {
         return this.authService.forgotPassword(forgotPasswordRequest);
     }
 
@@ -47,19 +51,20 @@ export class AuthController {
     }
 
     @Patch('reset-password')
-    resetPassword(@Body() resetPasswordRequest: ResetPasswordRequestDto) {
+    resetPassword(@Body() resetPasswordRequest: ResetPasswordRequestDto): Promise<AppResponseDto<null>> {
         return this.authService.resetPassword(resetPasswordRequest);
     }
 
     @Post('resend-code')
     @HttpCode(HttpStatus.OK)
-    resendVerificationCode(@Body() resendCodeRequest: ResendCodeRequestDto) {
+    resendVerificationCode(@Body() resendCodeRequest: ResendCodeRequestDto): Promise<void | AppResponseDto<null>> {
         return this.authService.resendVerificationCode(resendCodeRequest);
     }
 
     @Post('refresh')
     @HttpCode(HttpStatus.OK)
-    refreshToken(@Body() refreshTokenRequest: RefreshTokenRequestDto) {
+    @ApiResponse({type: LoginResponseDto})
+    refreshToken(@Body() refreshTokenRequest: RefreshTokenRequestDto): Promise<AppResponseDto<LoginResponseDto>> {
         return this.authService.refreshToken(refreshTokenRequest);
     }
 }

@@ -1,0 +1,12 @@
+node_modules
+dist
+npm-debug.log
+Dockerfile
+.dockerignore
+.idea
+.git
+.gitignore
+.env
+docker-compose.yml
+docs
+mahmoud-sams_accessKeys.csv

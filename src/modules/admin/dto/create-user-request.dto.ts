@@ -1,10 +1,13 @@
 import {BaseUserRequestDto} from "../../../common/dto/base-user-request.dto";
 import {IsNotEmpty, IsStrongPassword, MaxLength, MinLength} from "class-validator";
+import {ApiProperty} from "@nestjs/swagger";
 
 export class CreateUserRequestDto extends BaseUserRequestDto {
+    @ApiProperty()
     @IsNotEmpty({message: 'Role ID is required'})
     roleId: string;
 
+    @ApiProperty()
     @IsNotEmpty({message: 'Password is required'})
     @MinLength(8, {message: 'Password must be at least 8 characters'})
     @MaxLength(16, {message: 'Password must be not greater than 16 characters'})

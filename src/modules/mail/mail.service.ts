@@ -21,7 +21,7 @@ export class MailService {
                 subject: sendMailDto.subject,
                 to: sendMailDto.to,
                 from: this.configService.getOrThrow<string>(MAIL_CONFIG.MAIL_USER),
-                template: join(process.cwd(), 'templates/verification-mail.hbs'),
+                template: join(process.cwd(), 'dist', 'templates', 'verification-mail.hbs'),
                 context: {
                     subject: sendMailDto.subject,
                     name: sendMailDto.name,

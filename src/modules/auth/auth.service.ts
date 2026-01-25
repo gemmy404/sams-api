@@ -48,7 +48,7 @@ export class AuthService {
     ) {
     }
 
-    async register(registerDto: RegisterRequestDto) {
+    async register(registerDto: RegisterRequestDto): Promise<AppResponseDto<null>> {
         if (registerDto.academicId !== registerDto.academicEmail.split('@')[0]) {
             throw new BadRequestException('Academic ID must be identical to the prefix of your academic email')
         }
@@ -143,7 +143,7 @@ export class AuthService {
         return appResponse;
     }
 
-    async logout(currentUserDto: CurrentUserDto) {
+    async logout(currentUserDto: CurrentUserDto): Promise<AppResponseDto<null>> {
         const result = await this.refreshTokenModel.deleteOne({userId: currentUserDto._id});
         if (result.deletedCount === 0) {
             throw new UnauthorizedException('No active session found');
@@ -158,7 +158,7 @@ export class AuthService {
         return appResponse;
     }
 
-    async forgotPassword(forgotPasswordRequest: ForgotPasswordRequestDto) {
+    async forgotPassword(forgotPasswordRequest: ForgotPasswordRequestDto): Promise<AppResponseDto<null>> {
         const savedUser = await this.usersRepository.findUser({
             academicEmail: forgotPasswordRequest.academicEmail
         });
@@ -198,7 +198,7 @@ export class AuthService {
         return appResponse;
     }
 
-    async resetPassword(resetPasswordRequest: ResetPasswordRequestDto) {
+    async resetPassword(resetPasswordRequest: ResetPasswordRequestDto): Promise<AppResponseDto<null>> {
         if (resetPasswordRequest.newPassword !== resetPasswordRequest.confirmNewPassword) {
             throw new BadRequestException('Passwords do not match');
         }
@@ -221,7 +221,7 @@ export class AuthService {
         return appResponse;
     }
 
-    async resendVerificationCode(resendCodeRequest: ResendCodeRequestDto) {
+    async resendVerificationCode(resendCodeRequest: ResendCodeRequestDto): Promise<void | AppResponseDto<null>> {
         if (resendCodeRequest.action === VerificationType.ACTIVATE_ACCOUNT) {
             return await this.resendCodeInRegistration(resendCodeRequest.academicEmail);
         } else if (resendCodeRequest.action === VerificationType.RESET_PASSWORD) {
@@ -229,7 +229,7 @@ export class AuthService {
         }
     }
 
-    async refreshToken(refreshTokenRequest: RefreshTokenRequestDto) {
+    async refreshToken(refreshTokenRequest: RefreshTokenRequestDto): Promise<AppResponseDto<LoginResponseDto>> {
         const [userId, refreshToken] = refreshTokenRequest.refreshToken.split('.');
         if (!isValidObjectId(userId)) {
             throw new UnauthorizedException('Session expired or invalid format');
@@ -268,7 +268,7 @@ export class AuthService {
         return appResponse;
     }
 
-    private async verifyRegistration(verifyCodeRequest: VerifyCodeRequestDto, role: Roles) {
+    private async verifyRegistration(verifyCodeRequest: VerifyCodeRequestDto, role: Roles): Promise<AppResponseDto<null>> {
         const user = await this.usersRepository.findUser({
             academicEmail: verifyCodeRequest.academicEmail,
         });
@@ -394,7 +394,7 @@ export class AuthService {
         };
     }
 
-    private async resendCodeInRegistration(academicEmail: string) {
+    private async resendCodeInRegistration(academicEmail: string): Promise<void> {
         const user = await this.usersRepository.findUser({
             academicEmail: academicEmail,
         });

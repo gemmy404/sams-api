@@ -1,24 +1,45 @@
 services:
+  app:
+    image: mahmoud403/sams-app:latest
+    container_name: sams-app
+    ports:
+      - '3000:3000'
+    env_file:
+      - .env
+    depends_on:
+      - mongodb
+      - redis
+    restart: unless-stopped
+    networks:
+      - sams-net
+
   mongodb:
     image: mongo
-    container_name: mongo-db
+    container_name: sams-mongodb
     ports:
       - '27017:27017'
     volumes:
-      - mongo:/data
-    environment:
-      - MONGO_INITDB_ROOT_USERNAME=root
-      - MONGO_INITDB_ROOT_PASSWORD=123456
+      - mongo:/data/db
+    env_file:
+      - .env
+    networks:
+      - sams-net
 
   redis:
     image: redis:alpine
-    container_name: redis-cache
+    container_name: sams-redis
     restart: unless-stopped
     ports:
       - '6379:6379'
     volumes:
       - redis-data:/data
+    networks:
+      - sams-net
 
 volumes:
-  mongo: {}
-  redis-data: {}
+  mongo: { }
+  redis-data: { }
+
+networks:
+  sams-net:
+    driver: bridge
