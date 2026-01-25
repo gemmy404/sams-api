@@ -46,7 +46,7 @@ export class AdminService {
     }
 
     async findAllUsers(filterDto: GetUsersFilterDto, locale: string): Promise<AppResponseDto<AdminUserResponseDto[]>> {
-        const {search, roleId, status, sortBy, page, size} = filterDto;
+        const {search, roleId, status, page, size} = filterDto;
         const query: any = {};
 
         if (search) {
@@ -57,6 +57,9 @@ export class AdminService {
             ];
         }
 
+        const sortBy = ['name', 'academicEmail', 'academicId', 'createdAt'].includes(filterDto.sortBy)
+            ? filterDto.sortBy
+            : 'createdAt';
         let sortOrder: string = filterDto.sortOrder;
         if (sortBy === 'createdAt') {
             sortOrder = 'desc';

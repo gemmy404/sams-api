@@ -11,7 +11,9 @@ import {CurrentUserDto} from "../../common/dto/current-user.dto";
 import {ChangeUserRoleRequestDto} from "./dto/change-user-role-request.dto";
 import {CreateUserRequestDto} from "./dto/create-user-request.dto";
 import {GetUsersFilterDto} from "./dto/get-users-filter.dto";
+import {ApiBearerAuth, ApiResponse} from "@nestjs/swagger";
 
+@ApiBearerAuth('access-token')
 @Controller('api/v1/admin')
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles('admin')
@@ -21,19 +23,22 @@ export class AdminController {
     }
 
     @Get('roles')
+    @ApiResponse({type: [RoleResponseDto]})
     findAllRoles(): Promise<AppResponseDto<RoleResponseDto[]>> {
         return this.adminService.findAllRoles();
     }
 
     @Get('users')
+    @ApiResponse({type: [AdminUserResponseDto]})
     findAllUsers(
         @Query() filterDto: GetUsersFilterDto,
         @Headers('accept-language') lang: string = 'ar'
-    ): Promise<AppResponseDto<AdminUserResponseDto[] | AdminUserResponseDto>> {
+    ): Promise<AppResponseDto<AdminUserResponseDto[]>> {
         return this.adminService.findAllUsers(filterDto, lang);
     }
 
     @Patch('users/:id/toggle-activation')
+    @ApiResponse({type: [AdminUserResponseDto]})
     toggleUserActivation(
         @Param('id') id: string,
         @CurrentUser() currentUser: CurrentUserDto
@@ -42,6 +47,7 @@ export class AdminController {
     }
 
     @Patch('users/:id/role')
+    @ApiResponse({type: [AdminUserResponseDto]})
     changeUserRole(
         @Param('id') id: string,
         @Body() changeUserRoleRequest: ChangeUserRoleRequestDto,

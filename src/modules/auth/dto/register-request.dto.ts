@@ -1,8 +1,10 @@
 import {IsNotEmpty, IsStrongPassword, MaxLength, MinLength} from "class-validator";
 
 import {BaseUserRequestDto} from "../../../common/dto/base-user-request.dto";
+import {ApiProperty} from "@nestjs/swagger";
 
 export class RegisterRequestDto extends BaseUserRequestDto {
+    @ApiProperty()
     @IsNotEmpty({message: 'Password is required'})
     @MinLength(8, {message: 'Password must be at least 8 characters'})
     @MaxLength(16, {message: 'Password must be not greater than 16 characters'})
@@ -11,6 +13,7 @@ export class RegisterRequestDto extends BaseUserRequestDto {
     })
     password: string;
 
+    @ApiProperty()
     @IsNotEmpty({message: 'Confirm password is required'})
     @MinLength(8, {message: 'Confirm password must be at least 8 characters'})
     @MaxLength(16, {message: 'Confirm password must be not greater than 16 characters'})

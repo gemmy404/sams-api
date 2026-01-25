@@ -1,18 +1,12 @@
 import {ApiProperty} from "@nestjs/swagger";
 
-export class UserResponseDto {
-    @ApiProperty()
-    _id: string | null;
-
+export class AuthUserResponseDto {
     @ApiProperty()
     name: string;
 
     @ApiProperty()
     academicEmail: string;
 
-    @ApiProperty()
-    academicId: string;
-
-    @ApiProperty()
+    @ApiProperty({ nullable: true })
     profilePic: string | null;
 }

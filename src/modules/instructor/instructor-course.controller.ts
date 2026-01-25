@@ -9,7 +9,9 @@ import {CourseResponseDto} from "../courses/dto/course-response.dto";
 import {Roles} from "../../common/decorators/roles.decorator";
 import {UserRoles} from "../roles/enums/user-roles.enum";
 import {RolesGuard} from "../auth/guards/roles.guard";
+import {ApiBearerAuth, ApiOperation, ApiResponse} from "@nestjs/swagger";
 
+@ApiBearerAuth('access-token')
 @Controller('api/v1/instructor/courses')
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles(UserRoles.INSTRUCTOR)
@@ -27,6 +29,8 @@ export class InstructorCourseController {
     }
 
     @Get('me')
+    @ApiResponse({type: [CourseResponseDto]})
+    @ApiOperation({summary: 'Find my created courses'})
     findMyCreatedCourses(@CurrentUser() currentUser: CurrentUserDto): Promise<AppResponseDto<CourseResponseDto[]>> {
         return this.coursesService.findCreatedMyCourse(currentUser);
     }

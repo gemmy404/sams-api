@@ -1,7 +1,9 @@
-import { IsOptional, IsString } from 'class-validator';
+import {IsOptional, IsString} from 'class-validator';
+import {ApiProperty} from "@nestjs/swagger";
 
 export class UpdateUserRequestDto {
-  @IsOptional()
-  @IsString({ message: 'Name must be a string' })
-  name: string;
+    @ApiProperty()
+    @IsOptional()
+    @IsString({message: 'Name must be a string'})
+    name: string;
 }
