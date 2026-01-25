@@ -8,6 +8,12 @@ async function bootstrap() {
 
     app.useGlobalFilters(new AllExceptionsFilter());
 
+    app.enableCors({
+        origin: '*',
+        methods: 'GET,PUT,PATCH,POST,DELETE',
+        credentials: true,
+    });
+
     const config = new DocumentBuilder()
         .setTitle('SAMS API')
         .setDescription('SAMS API is a backend system for University academic level')
