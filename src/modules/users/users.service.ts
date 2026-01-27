@@ -10,6 +10,7 @@ import {UploadPicRequestDto} from "./dto/upload-pic-request.dto";
 import {S3Service} from "../s3/s3.service";
 import {ConfigService} from "@nestjs/config";
 import {UploadPicResponseDto} from "./dto/upload-pic-response.dto";
+import {SaveProfilePicRequestDto} from "./dto/save-profile-pic-request.dto";
 
 @Injectable()
 export class UsersService {
@@ -62,43 +63,55 @@ export class UsersService {
         return appResponse;
     }
 
-    async uploadProfilePicture(
+    async createUploadUrl(
         uploadPicRequest: UploadPicRequestDto,
         currentUser: CurrentUserDto
     ): Promise<AppResponseDto<UploadPicResponseDto>> {
-        const {key, uploadUrl} = await this.s3Service.generateUploadUrl(
-            uploadPicRequest.fileName,
+        const {key, uploadUrl, fileName} = await this.s3Service.generateUploadUrl(
+            uploadPicRequest.originalFileName,
             uploadPicRequest.contentType,
             'profiles',
             currentUser._id
         );
 
+        const appResponse: AppResponseDto<UploadPicResponseDto> = {
+            status: HttpStatusText.SUCCESS,
+            data: {
+                originalFileName: fileName,
+                key,
+                uploadUrl,
+            }
+        };
+
+        return appResponse;
+    }
+
+    async saveProfilePic(
+        saveProfilePicRequest: SaveProfilePicRequestDto,
+        currentUser: CurrentUserDto,
+    ): Promise<AppResponseDto<UserResponseDto>> {
+        const {key} = saveProfilePicRequest;
+
         const savedUser = await this.usersRepository.findUser({
             _id: currentUser._id
         });
         if (savedUser && savedUser.profilePic) {
-            const key: string = new URL(savedUser.profilePic).pathname.substring(1);
-            await this.s3Service.deleteFile(key);
+            await this.s3Service.deleteFile(savedUser.profilePic);
         }
 
-        const displayUrl = `${this.baseCloudFrontUrl}/${key}`;
-        await this.usersRepository.updateUser(
+        const updatedUser = await this.usersRepository.updateUser(
             {
                 _id: currentUser._id
             },
             {
                 $set: {
-                    profilePic: displayUrl
+                    profilePic: key
                 }
             });
 
-        const appResponse: AppResponseDto<UploadPicResponseDto> = {
+        const appResponse: AppResponseDto<UserResponseDto> = {
             status: HttpStatusText.SUCCESS,
-            data: {
-                key,
-                uploadUrl,
-                displayUrl: displayUrl
-            }
+            data: this.usersMapper.toUserResponse(updatedUser!)
         };
 
         return appResponse;
