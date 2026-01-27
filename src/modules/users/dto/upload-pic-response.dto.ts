@@ -8,5 +8,5 @@ export class UploadPicResponseDto {
     uploadUrl: string;
 
     @ApiProperty()
-    displayUrl: string;
+    originalFileName: string;
 }

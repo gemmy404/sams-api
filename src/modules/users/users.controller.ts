@@ -1,4 +1,4 @@
-import {Body, Controller, Get, Patch, Put, UseGuards} from '@nestjs/common';
+import {Body, Controller, Get, Patch, Post, UseGuards} from '@nestjs/common';
 import {UsersService} from './users.service';
 import {CurrentUser} from "../../common/decorators/current-user.decorator";
 import {CurrentUserDto} from "../../common/dto/current-user.dto";
@@ -9,6 +9,7 @@ import {ApiBearerAuth, ApiResponse} from "@nestjs/swagger";
 import {AppResponseDto} from "../../common/dto/app-response.dto";
 import {UserResponseDto} from "./dto/user-response.dto";
 import {UploadPicResponseDto} from "./dto/upload-pic-response.dto";
+import {SaveProfilePicRequestDto} from "./dto/save-profile-pic-request.dto";
 
 @ApiBearerAuth('access-token')
 @Controller('api/v1/users')
@@ -33,12 +34,21 @@ export class UsersController {
         return this.usersService.updateProfile(updateUserRequest, currentUser);
     }
 
-    @Put('profile-picture')
+    @Post('profile-picture/presigned-url')
     @ApiResponse({type: UploadPicResponseDto})
-    uploadProfilePicture(
+    createUploadUrl(
         @Body() uploadPicRequest: UploadPicRequestDto,
         @CurrentUser() currentUser: CurrentUserDto
-        ): Promise<AppResponseDto<UploadPicResponseDto>> {
-        return this.usersService.uploadProfilePicture(uploadPicRequest, currentUser);
+    ): Promise<AppResponseDto<UploadPicResponseDto>> {
+        return this.usersService.createUploadUrl(uploadPicRequest, currentUser);
+    }
+
+    @Patch('profile-picture')
+    @ApiResponse({type: UserResponseDto})
+    saveProfilePic(
+        @Body() saveProfilePicRequest: SaveProfilePicRequestDto,
+        @CurrentUser() currentUser: CurrentUserDto,
+    ): Promise<AppResponseDto<UserResponseDto>> {
+        return this.usersService.saveProfilePic(saveProfilePicRequest, currentUser);
     }
 }
