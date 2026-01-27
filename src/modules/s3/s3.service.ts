@@ -1,10 +1,11 @@
 import {Injectable, Logger} from '@nestjs/common';
-import {DeleteObjectCommand, PutObjectCommand, S3Client} from "@aws-sdk/client-s3";
+import {DeleteObjectCommand, GetObjectCommand, PutObjectCommand, S3Client} from "@aws-sdk/client-s3";
 import {ConfigService} from "@nestjs/config";
 import {S3_CONFIG} from "../../common/constants/s3.constant";
 import {extname} from "path";
 import * as crypto from "node:crypto";
 import {getSignedUrl} from "@aws-sdk/s3-request-presigner";
+import {getStaticUrl} from "../../common/utils/get-static-url.util";
 
 @Injectable()
 export class S3Service {
@@ -29,9 +30,9 @@ export class S3Service {
         fileName: string,
         contentType: string,
         folderName: string,
-        userId: string
+        fileNamePrefix: string,
     ) {
-        const key = `${folderName}/${userId}_${crypto.randomBytes(2).toString('hex')}${extname(fileName)}`;
+        const key = `${folderName}/${fileNamePrefix}_${crypto.randomBytes(3).toString('hex')}${extname(fileName)}`;
 
         const command = new PutObjectCommand({
             Bucket: this.bucket,
@@ -44,7 +45,21 @@ export class S3Service {
         return {
             key,
             uploadUrl,
+            fileName,
         };
+    }
+
+    async getFileUrl(objectKey: string, isPrivate: boolean = true) {
+        if (isPrivate) {
+            const command = new GetObjectCommand({
+                Bucket: this.bucket,
+                Key: objectKey,
+            });
+
+            return await getSignedUrl(this.s3Client, command, {expiresIn: 3600});
+        }
+
+        return getStaticUrl(objectKey);
     }
 
     async deleteFile(key: string) {
