@@ -36,7 +36,7 @@ export class EnrollmentsController {
         return this.enrollmentsService.findMyJoinedCourses(currentUser);
     }
 
-    @Delete('courses/:courseId')
+    @Delete('my-courses/:courseId')
     @ApiOperation({summary: 'Unenroll course'})
     unenrollCourse(
         @Param('courseId') courseId: string,
