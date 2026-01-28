@@ -15,6 +15,8 @@ import {AdminModule} from "./modules/admin/admin.module";
 import {CoursesModule} from './modules/courses/courses.module';
 import {InstructorModule} from "./modules/instructor/instructor.module";
 import {EnrollmentsModule} from "./modules/enrollments/enrollments.module";
+import { MaterialsModule } from './modules/materials/materials.module';
+import {ValidationError} from "class-validator";
 
 @Module({
     imports: [
@@ -55,10 +57,15 @@ import {EnrollmentsModule} from "./modules/enrollments/enrollments.module";
                 whitelist: true,
                 forbidNonWhitelisted: true,
                 transform: true,
-                exceptionFactory: (errors) => {
-                    const messages = errors.flatMap(err =>
-                        Object.values(err.constraints ?? {})
-                    );
+                exceptionFactory: (errors: ValidationError[]) => {
+                    const extractErrors = (errorList: ValidationError[]) => {
+                        return errorList.flatMap((err: ValidationError) => {
+                            const constraints: string[] = err.constraints ? Object.values(err.constraints) : [];
+                            const childErrors: string[] = err.children ? extractErrors(err.children) : [];
+                            return [...constraints, ...childErrors];
+                        });
+                    };
+                    const messages: string[] = extractErrors(errors);
 
                     return new ValidationException(messages, 400);
                 },

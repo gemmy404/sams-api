@@ -6,6 +6,7 @@ import {extname} from "path";
 import * as crypto from "node:crypto";
 import {getSignedUrl} from "@aws-sdk/s3-request-presigner";
 import {getStaticUrl} from "../../common/utils/get-static-url.util";
+import {CreateUploadUrlResponseDto} from "./dto/create-upload-url-response.dto";
 
 @Injectable()
 export class S3Service {
@@ -31,7 +32,7 @@ export class S3Service {
         contentType: string,
         folderName: string,
         fileNamePrefix: string,
-    ) {
+    ): Promise<CreateUploadUrlResponseDto> {
         const key = `${folderName}/${fileNamePrefix}_${crypto.randomBytes(3).toString('hex')}${extname(fileName)}`;
 
         const command = new PutObjectCommand({
@@ -43,9 +44,9 @@ export class S3Service {
         const uploadUrl: string = await getSignedUrl(this.s3Client, command, {expiresIn: 300});
 
         return {
+            originalFileName: fileName,
             key,
             uploadUrl,
-            fileName,
         };
     }
 
