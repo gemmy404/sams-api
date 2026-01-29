@@ -1,4 +1,4 @@
-import {Injectable, NotFoundException} from '@nestjs/common';
+import {ForbiddenException, Injectable, NotFoundException} from '@nestjs/common';
 import {MaterialsRepository} from "./materials.repository";
 import {UploadMaterialRequestDto} from "./dto/upload-material-request.dto";
 import {CoursesRepository} from "../courses/courses.repository";
@@ -12,6 +12,7 @@ import {Types} from "mongoose";
 import {MaterialResponseDto} from "./dto/material-response.dto";
 import {MaterialsMapper} from "./materials.mapper";
 import {EnrollmentsRepository} from "../enrollments/enrollments.repository";
+import {CurrentUserDto} from "../../common/dto/current-user.dto";
 
 @Injectable()
 export class MaterialsService {
@@ -76,4 +77,66 @@ export class MaterialsService {
         return appResponse;
     }
 
+    async findAllMaterials(
+        courseId: Types.ObjectId,
+        currentUser: CurrentUserDto
+    ): Promise<AppResponseDto<MaterialResponseDto[]>> {
+        await this.authorizeCourseAccess(courseId.toString(), currentUser);
+
+        const materials = await this.materialsRepository
+            .findAll({course: courseId}, {materialItems: false});
+
+        const appResponse: AppResponseDto<MaterialResponseDto[]> = {
+            status: HttpStatusText.SUCCESS,
+            data: materials.map(this.materialsMapper.toMaterialResponse)
+        };
+
+        return appResponse;
+    }
+
+    async findMaterialDetails(
+        materialId: Types.ObjectId,
+        currentUser: CurrentUserDto
+    ): Promise<AppResponseDto<MaterialResponseDto>> {
+        const savedMaterial = await this.materialsRepository.findOne({
+            _id: materialId,
+        });
+        if (!savedMaterial) {
+            throw new NotFoundException('The requested material could not be found');
+        }
+
+        await this.authorizeCourseAccess(savedMaterial.course.toString(), currentUser);
+
+        const appResponse: AppResponseDto<MaterialResponseDto> = {
+            status: HttpStatusText.SUCCESS,
+            data: this.materialsMapper.toMaterialResponse(savedMaterial)
+        };
+
+        return appResponse;
+    }
+
+    private async authorizeCourseAccess(courseId: string, currentUser: CurrentUserDto): Promise<void> {
+        const savedCourse = await this.coursesRepository.findCourse({
+            _id: courseId,
+        });
+        if (!savedCourse) {
+            throw new NotFoundException('Course not found');
+        }
+
+        const roles = currentUser.roles as string[];
+        if (roles.includes('instructor')) {
+            if (savedCourse.instructor.toString() !== currentUser._id) {
+                throw new ForbiddenException('You can only manage materials for' +
+                    ' courses you have created');
+            }
+        } else {
+            const savedEnrollment = await this.enrollmentsRepository
+                .findByUserIdAndCourseId(currentUser._id, courseId);
+
+            if (!savedEnrollment) {
+                throw new ForbiddenException('You must be enrolled in' +
+                    ' this course to view its materials');
+            }
+        }
+    }
 }
