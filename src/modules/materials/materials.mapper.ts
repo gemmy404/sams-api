@@ -12,6 +12,7 @@ export class MaterialsMapper {
         if (material.materialItems)
             materialItems = material.materialItems.map(item => ({
                 originalFileName: item.originalFileName,
+                key: item.contentReference,
                 displayUrl: getStaticUrl(item.contentReference)!
             }));
         return {

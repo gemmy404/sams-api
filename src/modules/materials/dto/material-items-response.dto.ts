@@ -5,5 +5,8 @@ export class MaterialItemsResponseDto {
     originalFileName: string;
 
     @ApiProperty()
+    key: string;
+
+    @ApiProperty()
     displayUrl: string;
 }
