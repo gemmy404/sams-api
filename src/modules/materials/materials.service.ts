@@ -13,6 +13,9 @@ import {MaterialResponseDto} from "./dto/material-response.dto";
 import {MaterialsMapper} from "./materials.mapper";
 import {EnrollmentsRepository} from "../enrollments/enrollments.repository";
 import {CurrentUserDto} from "../../common/dto/current-user.dto";
+import {MaterialItem} from "./schemas/material-items.schema";
+import {UpdateMaterialRequestDto} from "./dto/update-material-request.dto";
+import {MaterialItemsRequestDto} from "./dto/material-items-request.dto";
 
 @Injectable()
 export class MaterialsService {
@@ -72,6 +75,48 @@ export class MaterialsService {
         const appResponse: AppResponseDto<MaterialResponseDto> = {
             status: HttpStatusText.SUCCESS,
             data: this.materialsMapper.toMaterialResponse(createdMaterial),
+        };
+
+        return appResponse;
+    }
+
+    async deleteMaterial(materialId: Types.ObjectId): Promise<AppResponseDto<null>> {
+        const deletedMaterial = await this.materialsRepository
+            .deleteAndReturn(materialId);
+
+        const keys: { Key: string }[] = deletedMaterial!.materialItems.map(item => (
+            {Key: item.contentReference}
+        ));
+        if (keys.length > 0)
+            await this.s3Service.deleteMultipleFiles(keys);
+
+        const appResponse: AppResponseDto<null> = {
+            status: HttpStatusText.SUCCESS,
+            message: `Material deleted successfully`,
+            data: null,
+        };
+
+        return appResponse;
+    }
+
+    async deleteMaterialItem(materialId: Types.ObjectId, itemKey: string): Promise<AppResponseDto<null>> {
+        const savedMaterial = await this.materialsRepository.findOne({
+            _id: materialId
+        });
+
+        const itemToDelete: MaterialItem | undefined = savedMaterial!.materialItems.find(
+            (item: MaterialItem) => item.contentReference === itemKey);
+        if (!itemToDelete) {
+            throw new NotFoundException('File not found in this material');
+        }
+
+        await this.materialsRepository.deleteItemFromMaterial(materialId, itemKey);
+        await this.s3Service.deleteFile(itemKey);
+
+        const appResponse: AppResponseDto<null> = {
+            status: HttpStatusText.SUCCESS,
+            message: `File deleted successfully`,
+            data: null,
         };
 
         return appResponse;

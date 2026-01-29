@@ -20,7 +20,7 @@ import {EnrollmentsModule} from "../enrollments/enrollments.module";
     ],
     controllers: [MaterialsController],
     providers: [MaterialsService, MaterialsRepository, MaterialsMapper],
-    exports: [MaterialsService],
+    exports: [MaterialsService, MaterialsRepository],
 })
 export class MaterialsModule {
 }

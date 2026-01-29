@@ -1,10 +1,10 @@
-import {Body, Controller, Param, Post, UseGuards} from '@nestjs/common';
+import {Body, Controller, Delete, Param, Post, Query, UseGuards} from '@nestjs/common';
 import {JwtAuthGuard} from "../auth/guards/jwt-auth.guard";
 import {AppResponseDto} from "../../common/dto/app-response.dto";
 import {Roles} from "../../common/decorators/roles.decorator";
 import {UserRoles} from "../roles/enums/user-roles.enum";
 import {RolesGuard} from "../auth/guards/roles.guard";
-import {ApiBearerAuth} from "@nestjs/swagger";
+import {ApiBearerAuth, ApiResponse} from "@nestjs/swagger";
 import {UploadMaterialRequestDto} from "../materials/dto/upload-material-request.dto";
 import {CreateUploadUrlResponseDto} from "../s3/dto/create-upload-url-response.dto";
 import {MaterialsService} from "../materials/materials.service";
@@ -13,6 +13,7 @@ import {ParseObjectIdPipe} from "@nestjs/mongoose";
 import {AddMaterialRequestDto} from "../materials/dto/add-material-request.dto";
 import {Types} from "mongoose";
 import {MaterialResponseDto} from "../materials/dto/material-response.dto";
+import {IsMaterialOwnerGuard} from "../materials/guards/is-material-owner.guard";
 
 @ApiBearerAuth('access-token')
 @Controller('api/v1/instructor')
@@ -25,6 +26,7 @@ export class InstructorMaterialController {
 
     @Post('courses/:courseId/materials/presigned-urls')
     @UseGuards(IsCourseOwnerGuard)
+    @ApiResponse({type: [CreateUploadUrlResponseDto]})
     createUploadUrls(
         @Param('courseId', ParseObjectIdPipe) courseId: Types.ObjectId,
         @Body() uploadMaterialRequest: UploadMaterialRequestDto
@@ -34,11 +36,29 @@ export class InstructorMaterialController {
 
     @Post('courses/:courseId/materials')
     @UseGuards(IsCourseOwnerGuard)
+    @ApiResponse({type: MaterialResponseDto})
     addMaterials(
         @Param('courseId', ParseObjectIdPipe) courseId: Types.ObjectId,
         @Body() addMaterialRequest: AddMaterialRequestDto
     ): Promise<AppResponseDto<MaterialResponseDto>> {
         return this.materialsService.addMaterials(courseId, addMaterialRequest);
+    }
+
+    @Delete('materials/:materialId')
+    @UseGuards(IsMaterialOwnerGuard)
+    deleteMaterial(
+        @Param('materialId', ParseObjectIdPipe) materialId: Types.ObjectId
+    ): Promise<AppResponseDto<null>> {
+        return this.materialsService.deleteMaterial(materialId);
+    }
+
+    @Delete('materials/:materialId/items')
+    @UseGuards(IsMaterialOwnerGuard)
+    deleteMaterialItem(
+        @Param('materialId', ParseObjectIdPipe) materialId: Types.ObjectId,
+        @Query('itemKey') itemKey: string,
+    ): Promise<AppResponseDto<null>> {
+        return this.materialsService.deleteMaterialItem(materialId, itemKey);
     }
 
 }
