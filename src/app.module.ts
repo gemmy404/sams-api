@@ -15,7 +15,7 @@ import {AdminModule} from "./modules/admin/admin.module";
 import {CoursesModule} from './modules/courses/courses.module';
 import {InstructorModule} from "./modules/instructor/instructor.module";
 import {EnrollmentsModule} from "./modules/enrollments/enrollments.module";
-import { MaterialsModule } from './modules/materials/materials.module';
+import {MaterialsModule} from './modules/materials/materials.module';
 import {ValidationError} from "class-validator";
 
 @Module({
@@ -48,7 +48,8 @@ import {ValidationError} from "class-validator";
         AdminModule,
         CoursesModule,
         InstructorModule,
-        EnrollmentsModule
+        EnrollmentsModule,
+        MaterialsModule
     ],
     providers: [
         {
