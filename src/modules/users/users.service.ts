@@ -9,7 +9,7 @@ import {UpdateUserRequestDto} from "./dto/update-user-request.dto";
 import {UploadPicRequestDto} from "./dto/upload-pic-request.dto";
 import {S3Service} from "../s3/s3.service";
 import {ConfigService} from "@nestjs/config";
-import {UploadPicResponseDto} from "./dto/upload-pic-response.dto";
+import {CreateUploadUrlResponseDto} from "../s3/dto/create-upload-url-response.dto";
 import {SaveProfilePicRequestDto} from "./dto/save-profile-pic-request.dto";
 
 @Injectable()
@@ -66,18 +66,18 @@ export class UsersService {
     async createUploadUrl(
         uploadPicRequest: UploadPicRequestDto,
         currentUser: CurrentUserDto
-    ): Promise<AppResponseDto<UploadPicResponseDto>> {
-        const {key, uploadUrl, fileName} = await this.s3Service.generateUploadUrl(
+    ): Promise<AppResponseDto<CreateUploadUrlResponseDto>> {
+        const {key, uploadUrl, originalFileName} = await this.s3Service.generateUploadUrl(
             uploadPicRequest.originalFileName,
             uploadPicRequest.contentType,
             'profiles',
             currentUser._id
         );
 
-        const appResponse: AppResponseDto<UploadPicResponseDto> = {
+        const appResponse: AppResponseDto<CreateUploadUrlResponseDto> = {
             status: HttpStatusText.SUCCESS,
             data: {
-                originalFileName: fileName,
+                originalFileName,
                 key,
                 uploadUrl,
             }

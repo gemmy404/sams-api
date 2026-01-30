@@ -8,7 +8,7 @@ import {UploadPicRequestDto} from "./dto/upload-pic-request.dto";
 import {ApiBearerAuth, ApiResponse} from "@nestjs/swagger";
 import {AppResponseDto} from "../../common/dto/app-response.dto";
 import {UserResponseDto} from "./dto/user-response.dto";
-import {UploadPicResponseDto} from "./dto/upload-pic-response.dto";
+import {CreateUploadUrlResponseDto} from "../s3/dto/create-upload-url-response.dto";
 import {SaveProfilePicRequestDto} from "./dto/save-profile-pic-request.dto";
 
 @ApiBearerAuth('access-token')
@@ -35,11 +35,11 @@ export class UsersController {
     }
 
     @Post('profile-picture/presigned-url')
-    @ApiResponse({type: UploadPicResponseDto})
+    @ApiResponse({type: CreateUploadUrlResponseDto})
     createUploadUrl(
         @Body() uploadPicRequest: UploadPicRequestDto,
         @CurrentUser() currentUser: CurrentUserDto
-    ): Promise<AppResponseDto<UploadPicResponseDto>> {
+    ): Promise<AppResponseDto<CreateUploadUrlResponseDto>> {
         return this.usersService.createUploadUrl(uploadPicRequest, currentUser);
     }
 

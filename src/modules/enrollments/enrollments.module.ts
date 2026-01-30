@@ -15,6 +15,7 @@ import {CoursesModule} from "../courses/courses.module";
     ],
     controllers: [EnrollmentsController],
     providers: [EnrollmentsService, EnrollmentsRepository],
+    exports: [EnrollmentsRepository],
 })
 export class EnrollmentsModule {
 }

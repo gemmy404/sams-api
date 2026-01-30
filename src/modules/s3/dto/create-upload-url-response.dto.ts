@@ -1,6 +1,6 @@
 import {ApiProperty} from "@nestjs/swagger";
 
-export class UploadPicResponseDto {
+export class CreateUploadUrlResponseDto {
     @ApiProperty()
     key: string;
 

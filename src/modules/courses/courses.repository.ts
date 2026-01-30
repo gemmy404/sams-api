@@ -25,5 +25,10 @@ export class CoursesRepository {
             .populate({path: 'instructor', select: {name: true}});
     }
 
+    async findCourseOwner(query: QueryFilter<Course>) {
+        return this.coursesModel.findOne(query)
+            .populate('instructor');
+    }
+
 
 }
