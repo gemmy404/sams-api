@@ -1,7 +1,7 @@
 import {Injectable} from '@nestjs/common';
 import {InjectModel} from "@nestjs/mongoose";
 import {Material} from "./schemas/materials.schema";
-import {Model, QueryFilter, Types} from "mongoose";
+import {Model, QueryFilter, UpdateQuery} from "mongoose";
 
 @Injectable()
 export class MaterialsRepository {
@@ -13,6 +13,10 @@ export class MaterialsRepository {
 
     async createMaterial(material: Material) {
         return this.materialsModel.create(material);
+    }
+
+    async updateMaterial(query: QueryFilter<Material>, updatedVal: UpdateQuery<Material>) {
+        return this.materialsModel.findOneAndUpdate(query, updatedVal, {new: true});
     }
 
     async findAll(query: QueryFilter<Material>, select: Record<string, boolean>) {
@@ -40,16 +44,5 @@ export class MaterialsRepository {
 
     async deleteAndReturn(query: QueryFilter<Material>) {
         return this.materialsModel.findOneAndDelete(query);
-    }
-
-    deleteItemFromMaterial(materialId: Types.ObjectId, key: string) {
-        return this.materialsModel.updateOne({_id: materialId,},
-            {
-                $pull: {
-                    materialItems: {
-                        contentReference: key
-                    }
-                }
-            });
     }
 }

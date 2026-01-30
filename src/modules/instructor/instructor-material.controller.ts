@@ -1,4 +1,4 @@
-import {Body, Controller, Delete, Param, Post, Query, UseGuards} from '@nestjs/common';
+import {Body, Controller, Delete, Param, Patch, Post, Query, UseGuards} from '@nestjs/common';
 import {JwtAuthGuard} from "../auth/guards/jwt-auth.guard";
 import {AppResponseDto} from "../../common/dto/app-response.dto";
 import {Roles} from "../../common/decorators/roles.decorator";
@@ -14,6 +14,8 @@ import {AddMaterialRequestDto} from "../materials/dto/add-material-request.dto";
 import {Types} from "mongoose";
 import {MaterialResponseDto} from "../materials/dto/material-response.dto";
 import {IsMaterialOwnerGuard} from "../materials/guards/is-material-owner.guard";
+import {UpdateMaterialRequestDto} from "../materials/dto/update-material-request.dto";
+import {AddMaterialItemsRequestDto} from "../materials/dto/add-material-items-request.dto";
 
 @ApiBearerAuth('access-token')
 @Controller('api/v1/instructor')
@@ -44,6 +46,16 @@ export class InstructorMaterialController {
         return this.materialsService.addMaterials(courseId, addMaterialRequest);
     }
 
+    @Patch('materials/:materialId')
+    @UseGuards(IsMaterialOwnerGuard)
+    @ApiResponse({type: MaterialResponseDto})
+    updateMaterial(
+        @Param('materialId', ParseObjectIdPipe) materialId: Types.ObjectId,
+        @Body() updateMaterialRequest: UpdateMaterialRequestDto
+    ): Promise<AppResponseDto<MaterialResponseDto>> {
+        return this.materialsService.updateMaterial(materialId, updateMaterialRequest);
+    }
+
     @Delete('materials/:materialId')
     @UseGuards(IsMaterialOwnerGuard)
     deleteMaterial(
@@ -52,12 +64,23 @@ export class InstructorMaterialController {
         return this.materialsService.deleteMaterial(materialId);
     }
 
+    @Post('materials/:materialId/items')
+    @UseGuards(IsMaterialOwnerGuard)
+    @ApiResponse({type: MaterialResponseDto})
+    addMaterialItems(
+        @Param('materialId', ParseObjectIdPipe) materialId: Types.ObjectId,
+        @Body() addMaterialItemsRequest: AddMaterialItemsRequestDto
+    ): Promise<AppResponseDto<MaterialResponseDto>> {
+        return this.materialsService.addMaterialItems(materialId, addMaterialItemsRequest);
+    }
+
     @Delete('materials/:materialId/items')
     @UseGuards(IsMaterialOwnerGuard)
+    @ApiResponse({type: MaterialResponseDto})
     deleteMaterialItem(
         @Param('materialId', ParseObjectIdPipe) materialId: Types.ObjectId,
         @Query('itemKey') itemKey: string,
-    ): Promise<AppResponseDto<null>> {
+    ): Promise<AppResponseDto<MaterialResponseDto>> {
         return this.materialsService.deleteMaterialItem(materialId, itemKey);
     }
 

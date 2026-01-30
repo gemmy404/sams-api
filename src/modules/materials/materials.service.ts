@@ -15,7 +15,7 @@ import {EnrollmentsRepository} from "../enrollments/enrollments.repository";
 import {CurrentUserDto} from "../../common/dto/current-user.dto";
 import {MaterialItem} from "./schemas/material-items.schema";
 import {UpdateMaterialRequestDto} from "./dto/update-material-request.dto";
-import {MaterialItemsRequestDto} from "./dto/material-items-request.dto";
+import {AddMaterialItemsRequestDto} from "./dto/add-material-items-request.dto";
 
 @Injectable()
 export class MaterialsService {
@@ -80,6 +80,40 @@ export class MaterialsService {
         return appResponse;
     }
 
+    async updateMaterial(
+        materialId: Types.ObjectId,
+        updateMaterialRequest: UpdateMaterialRequestDto
+    ): Promise<AppResponseDto<MaterialResponseDto>> {
+        const updatedMaterial = await this.materialsRepository
+            .updateMaterial({_id: materialId}, updateMaterialRequest);
+
+        const appResponse: AppResponseDto<MaterialResponseDto> = {
+            status: HttpStatusText.SUCCESS,
+            data: this.materialsMapper.toMaterialResponse(updatedMaterial!)
+        };
+
+        return appResponse;
+    }
+
+    async addMaterialItems(
+        materialId: Types.ObjectId,
+        addMaterialItemsRequest: AddMaterialItemsRequestDto
+    ): Promise<AppResponseDto<MaterialResponseDto>> {
+        const updatedMaterial = await this.materialsRepository
+            .updateMaterial({_id: materialId}, {
+                $push: {
+                    materialItems: addMaterialItemsRequest.materialItems
+                }
+            });
+
+        const appResponse: AppResponseDto<MaterialResponseDto> = {
+            status: HttpStatusText.SUCCESS,
+            data: this.materialsMapper.toMaterialResponse(updatedMaterial!)
+        };
+
+        return appResponse;
+    }
+
     async deleteMaterial(materialId: Types.ObjectId): Promise<AppResponseDto<null>> {
         const deletedMaterial = await this.materialsRepository
             .deleteAndReturn(materialId);
@@ -99,7 +133,7 @@ export class MaterialsService {
         return appResponse;
     }
 
-    async deleteMaterialItem(materialId: Types.ObjectId, itemKey: string): Promise<AppResponseDto<null>> {
+    async deleteMaterialItem(materialId: Types.ObjectId, itemKey: string): Promise<AppResponseDto<MaterialResponseDto>> {
         const savedMaterial = await this.materialsRepository.findOne({
             _id: materialId
         });
@@ -110,13 +144,19 @@ export class MaterialsService {
             throw new NotFoundException('File not found in this material');
         }
 
-        await this.materialsRepository.deleteItemFromMaterial(materialId, itemKey);
+        const updatedMaterial = await this.materialsRepository
+            .updateMaterial({_id: materialId}, {
+                $pull: {
+                    materialItems: {
+                        contentReference: itemKey
+                    }
+                }
+            });
         await this.s3Service.deleteFile(itemKey);
 
-        const appResponse: AppResponseDto<null> = {
+        const appResponse: AppResponseDto<MaterialResponseDto> = {
             status: HttpStatusText.SUCCESS,
-            message: `File deleted successfully`,
-            data: null,
+            data: this.materialsMapper.toMaterialResponse(updatedMaterial!)
         };
 
         return appResponse;
