@@ -89,7 +89,7 @@ QuizSchema.virtual('status').get(function (this: Quiz): QuizStatus {
 
     if (now < start) {
         return QuizStatus.SCHEDULED;
-    } else if (now >= start && now < end) {
+    } else if (now >= start && now <= end) {
         return QuizStatus.ACTIVE;
     } else {
         return QuizStatus.CLOSED;
