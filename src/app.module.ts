@@ -18,6 +18,7 @@ import {EnrollmentsModule} from "./modules/enrollments/enrollments.module";
 import {MaterialsModule} from './modules/materials/materials.module';
 import {ValidationError} from "class-validator";
 import {QuizzesModule} from "./modules/quiz/quizzes.module";
+import {QuestionsModule} from "./modules/questions/questions.module";
 
 @Module({
     imports: [
@@ -51,7 +52,8 @@ import {QuizzesModule} from "./modules/quiz/quizzes.module";
         InstructorModule,
         EnrollmentsModule,
         MaterialsModule,
-        QuizzesModule
+        QuizzesModule,
+        QuestionsModule,
     ],
     providers: [
         {
