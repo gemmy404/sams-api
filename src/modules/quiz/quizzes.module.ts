@@ -6,6 +6,7 @@ import {MongooseModule} from "@nestjs/mongoose";
 import {QuizzesMapper} from "./quizzes.mapper";
 import {QuizzesRepository} from "./quizzes.repository";
 import {MaterialsModule} from "../materials/materials.module";
+import {QuestionsModule} from "../questions/questions.module";
 
 @Module({
     imports: [
@@ -13,6 +14,7 @@ import {MaterialsModule} from "../materials/materials.module";
             {name: Quiz.name, schema: QuizSchema},
         ]),
         MaterialsModule,
+        QuestionsModule,
     ],
     controllers: [QuizzesController],
     providers: [QuizzesService, QuizzesRepository, QuizzesMapper],

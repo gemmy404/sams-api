@@ -8,6 +8,7 @@ import {CurrentUser} from "../../common/decorators/current-user.decorator";
 import {CurrentUserDto} from "../../common/dto/current-user.dto";
 import {QuizResponseDto} from "./dto/quiz-response.dto";
 import {AppResponseDto} from "../../common/dto/app-response.dto";
+import {QuestionResponseDto} from "../questions/dto/question-response.dto";
 
 @ApiTags('Quiz Controller')
 @Controller('api/v1')
@@ -32,6 +33,15 @@ export class QuizzesController {
         @CurrentUser() currentUser: CurrentUserDto
     ): Promise<AppResponseDto<QuizResponseDto>> {
         return this.quizzesService.findQuizDetails(quizId, currentUser);
+    }
+
+    @Get('quizzes/:quizId/questions')
+    @ApiResponse({type: [QuestionResponseDto]})
+    startQuiz(
+        @Param('quizId', ParseObjectIdPipe) quizId: Types.ObjectId,
+        @CurrentUser() currentUser: CurrentUserDto
+    ): Promise<AppResponseDto<QuestionResponseDto[]>> {
+        return this.quizzesService.startQuiz(quizId, currentUser);
     }
 
 }
