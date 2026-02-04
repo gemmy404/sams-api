@@ -167,7 +167,7 @@ export class QuizzesService {
         return appResponse;
     }
 
-    async startQuiz(
+    async findAllQuestions(
         quizId: Types.ObjectId,
         currentUser: CurrentUserDto
     ): Promise<AppResponseDto<QuestionResponseDto[]>> {
@@ -177,24 +177,39 @@ export class QuizzesService {
         }
 
         await this.materialService.authorizeCourseAccess(savedQuiz.course.toString(), currentUser);
+        const userRole: UserRoles = (currentUser.roles as UserRoles[])
+            .includes(UserRoles.STUDENT) ? UserRoles.STUDENT : UserRoles.INSTRUCTOR;
 
-        if (!savedQuiz.isPublished) {
+        if (userRole === UserRoles.STUDENT) {
+            return this.startQuiz(savedQuiz, userRole);
+        }
+
+        const questions = await this.questionsRepository.findAll({quiz: quizId});
+        const appResponse: AppResponseDto<QuestionResponseDto[]> = {
+            status: HttpStatusText.SUCCESS,
+            data: questions.map(question =>
+                this.questionsMapper.toQuestionResponse(question, userRole))
+        };
+
+        return appResponse;
+    }
+
+    private async startQuiz(savedQuiz: Quiz, userRole: UserRoles): Promise<AppResponseDto<QuestionResponseDto[]>> {
+        if (!savedQuiz.isPublished && userRole === UserRoles.STUDENT) {
             throw new ForbiddenException('This quiz is not published yet');
         }
 
         const now = new Date();
-        if (now.getTime() < savedQuiz.startTime.getTime()) {
+        if (now.getTime() < savedQuiz.startTime.getTime() && userRole === UserRoles.STUDENT) {
             throw new BadRequestException(`This quiz will begin on ${savedQuiz.startTime.toLocaleString()}`);
         }
-        if (now.getTime() > savedQuiz.endTime.getTime()) {
+        if (now.getTime() > savedQuiz.endTime.getTime() && userRole === UserRoles.STUDENT) {
             throw new BadRequestException('Quiz has already ended');
         }
 
         // check if he started quiz or submitted before
 
-        const questions = await this.questionsRepository.findAll({quiz: quizId});
-        const userRole: UserRoles = (currentUser.roles as UserRoles[])
-            .includes(UserRoles.STUDENT) ? UserRoles.STUDENT : UserRoles.INSTRUCTOR;
+        const questions = await this.questionsRepository.findAll({quiz: savedQuiz._id});
 
         const appResponse: AppResponseDto<QuestionResponseDto[]> = {
             status: HttpStatusText.SUCCESS,

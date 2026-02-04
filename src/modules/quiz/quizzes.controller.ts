@@ -36,12 +36,19 @@ export class QuizzesController {
     }
 
     @Get('quizzes/:quizId/questions')
-    @ApiResponse({type: [QuestionResponseDto]})
-    startQuiz(
+    @ApiResponse({
+        type: [QuestionResponseDto],
+        description:
+            'For Instructors: View and review all questions in a quiz for management and editing purposes\n' +
+            '\nFor Students: Start a quiz by fetching all questions to begin the quiz session\n' +
+            '\nInstructors receive the isCorrect field in the options array (to review and manage correct answers)\n' +
+            '\nStudents do NOT receive the isCorrect field in the options array (to prevent seeing correct answers when starting the quiz)\n'
+    })
+    startQuizOrGetAllQuestions(
         @Param('quizId', ParseObjectIdPipe) quizId: Types.ObjectId,
         @CurrentUser() currentUser: CurrentUserDto
     ): Promise<AppResponseDto<QuestionResponseDto[]>> {
-        return this.quizzesService.startQuiz(quizId, currentUser);
+        return this.quizzesService.findAllQuestions(quizId, currentUser);
     }
 
 }
