@@ -18,6 +18,8 @@ import {QuestionsMapper} from "../questions/questions.mapper";
 @Injectable()
 export class QuizzesService {
 
+    private readonly EARLY_ACCESS_MINUTES = 5;
+
     constructor(
         private readonly quizzesRepository: QuizzesRepository,
         private readonly questionsRepository: QuestionsRepository,
@@ -55,7 +57,7 @@ export class QuizzesService {
 
         if (roles.includes(UserRoles.STUDENT)) {
             query.isPublished = true;
-            query.startTime = {$lte: new Date()};
+            query.startTime = {$lte: new Date(Date.now() + this.EARLY_ACCESS_MINUTES * 60 * 1000)};
         }
 
         const quizzes = await this.quizzesRepository.findAll(query);
@@ -84,8 +86,8 @@ export class QuizzesService {
                 throw new ForbiddenException('This quiz is not published yet');
             }
 
-            const now = new Date();
-            if (now < savedQuiz.startTime) {
+            const earliestAllowedEntry = new Date().getTime() + this.EARLY_ACCESS_MINUTES * 60 * 1000;
+            if (earliestAllowedEntry < savedQuiz.startTime.getTime()) {
                 throw new ForbiddenException(`This quiz will be available on ${savedQuiz.startTime.toLocaleString()}`);
             }
         }
@@ -176,9 +178,13 @@ export class QuizzesService {
 
         await this.materialService.authorizeCourseAccess(savedQuiz.course.toString(), currentUser);
 
+        if (!savedQuiz.isPublished) {
+            throw new ForbiddenException('This quiz is not published yet');
+        }
+
         const now = new Date();
         if (now.getTime() < savedQuiz.startTime.getTime()) {
-            throw new BadRequestException('Quiz has not started yet');
+            throw new BadRequestException(`This quiz will begin on ${savedQuiz.startTime.toLocaleString()}`);
         }
         if (now.getTime() > savedQuiz.endTime.getTime()) {
             throw new BadRequestException('Quiz has already ended');
