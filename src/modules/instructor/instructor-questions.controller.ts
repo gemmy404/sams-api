@@ -1,4 +1,4 @@
-import {Body, Controller, Param, Post, UseGuards} from '@nestjs/common';
+import {Body, Controller, Delete, Param, Patch, Post, UseGuards} from '@nestjs/common';
 import {JwtAuthGuard} from "../auth/guards/jwt-auth.guard";
 import {Roles} from "../../common/decorators/roles.decorator";
 import {UserRoles} from "../roles/enums/user-roles.enum";
@@ -12,6 +12,7 @@ import {AppResponseDto} from "../../common/dto/app-response.dto";
 import {AddQuestionsRequestDto} from "../questions/dto/add-questions-request.dto";
 import {QuestionResponseDto} from "../questions/dto/question-response.dto";
 import {QuestionsService} from "../questions/questions.service";
+import {UpdateQuestionRequestDto} from "../questions/dto/update-question-request.dto";
 
 @ApiBearerAuth('access-token')
 @Controller('api/v1/instructor')
@@ -30,6 +31,24 @@ export class InstructorQuestionsController {
         @CurrentUser() currentUser: CurrentUserDto
     ): Promise<AppResponseDto<QuestionResponseDto[]>> {
         return this.questionsService.addQuestions(quizId, addQuestionsRequest, currentUser);
+    }
+
+    @Patch('questions/:questionId')
+    @ApiResponse({type: QuestionResponseDto})
+    updateQuestion(
+        @Param('questionId', ParseObjectIdPipe) questionId: Types.ObjectId,
+        @Body() updateQuestionRequest: UpdateQuestionRequestDto,
+        @CurrentUser() currentUser: CurrentUserDto
+    ): Promise<AppResponseDto<QuestionResponseDto>> {
+        return this.questionsService.updateQuestion(questionId, updateQuestionRequest, currentUser)
+    }
+
+    @Delete('questions/:questionId')
+    deleteQuestion(
+        @Param('questionId', ParseObjectIdPipe) questionId: Types.ObjectId,
+        @CurrentUser() currentUser: CurrentUserDto
+    ): Promise<AppResponseDto<null>> {
+        return this.questionsService.deleteQuestion(questionId, currentUser);
     }
 
 }

@@ -1,4 +1,4 @@
-import {Module} from '@nestjs/common';
+import {forwardRef, Module} from '@nestjs/common';
 import {QuestionsService} from './questions.service';
 import {MongooseModule} from "@nestjs/mongoose";
 import {Question, QuestionSchema} from "./schemas/questions.schema";
@@ -12,7 +12,7 @@ import {QuestionsMapper} from "./questions.mapper";
         MongooseModule.forFeature([
             {name: Question.name, schema: QuestionSchema},
         ]),
-        QuizzesModule,
+        forwardRef(() => QuizzesModule),
         MaterialsModule,
     ],
     providers: [QuestionsRepository, QuestionsService, QuestionsMapper],
