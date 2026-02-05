@@ -14,6 +14,9 @@ import {QuestionsRepository} from "../questions/questions.repository";
 import {UpdateQuizRequestDto} from "./dto/update-quiz-request.dto";
 import {QuestionResponseDto} from "../questions/dto/question-response.dto";
 import {QuestionsMapper} from "../questions/questions.mapper";
+import {QuizSubmissionsRepository} from "../quiz-submissions/quiz-submissions.repository";
+import {SubmissionStatus} from "../quiz-submissions/enums/submission-status.enum";
+
 
 @Injectable()
 export class QuizzesService {
@@ -23,6 +26,7 @@ export class QuizzesService {
     constructor(
         private readonly quizzesRepository: QuizzesRepository,
         private readonly questionsRepository: QuestionsRepository,
+        private readonly quizSubmissionsRepository: QuizSubmissionsRepository,
         private readonly quizzesMapper: QuizzesMapper,
         private readonly questionsMapper: QuestionsMapper,
         private readonly materialService: MaterialsService,
@@ -181,7 +185,7 @@ export class QuizzesService {
             .includes(UserRoles.STUDENT) ? UserRoles.STUDENT : UserRoles.INSTRUCTOR;
 
         if (userRole === UserRoles.STUDENT) {
-            return this.startQuiz(savedQuiz, userRole);
+            return this.startQuiz(savedQuiz, currentUser, userRole);
         }
 
         const questions = await this.questionsRepository.findAll({quiz: quizId});
@@ -194,7 +198,11 @@ export class QuizzesService {
         return appResponse;
     }
 
-    private async startQuiz(savedQuiz: Quiz, userRole: UserRoles): Promise<AppResponseDto<QuestionResponseDto[]>> {
+    private async startQuiz(
+        savedQuiz: Quiz,
+        currentUser: CurrentUserDto,
+        userRole: UserRoles
+    ): Promise<AppResponseDto<QuestionResponseDto[]>> {
         if (!savedQuiz.isPublished && userRole === UserRoles.STUDENT) {
             throw new ForbiddenException('This quiz is not published yet');
         }
@@ -207,7 +215,18 @@ export class QuizzesService {
             throw new BadRequestException('Quiz has already ended');
         }
 
-        // check if he started quiz or submitted before
+        const isSubmissionExists = await this.quizSubmissionsRepository
+            .findSubmission({student: new Types.ObjectId(currentUser._id), quiz: savedQuiz._id});
+        if (isSubmissionExists) {
+            throw new BadRequestException('You have already started or submitted this quiz');
+        }
+        const submissionRequest: any = {
+            quiz: savedQuiz._id!,
+            student: new Types.ObjectId(currentUser._id),
+            startedAt: now,
+            status: SubmissionStatus.STARTED,
+        };
+        await this.quizSubmissionsRepository.createSubmission(submissionRequest);
 
         const questions = await this.questionsRepository.findAll({quiz: savedQuiz._id});
 

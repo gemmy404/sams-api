@@ -19,6 +19,7 @@ import {MaterialsModule} from './modules/materials/materials.module';
 import {ValidationError} from "class-validator";
 import {QuizzesModule} from "./modules/quiz/quizzes.module";
 import {QuestionsModule} from "./modules/questions/questions.module";
+import { QuizSubmissionsModule } from './modules/quiz-submissions/quiz-submissions.module';
 
 @Module({
     imports: [
@@ -54,6 +55,7 @@ import {QuestionsModule} from "./modules/questions/questions.module";
         MaterialsModule,
         QuizzesModule,
         QuestionsModule,
+        QuizSubmissionsModule,
     ],
     providers: [
         {
