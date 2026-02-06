@@ -200,7 +200,7 @@ export class MaterialsService {
         return appResponse;
     }
 
-    private async authorizeCourseAccess(courseId: string, currentUser: CurrentUserDto): Promise<void> {
+    async authorizeCourseAccess(courseId: string, currentUser: CurrentUserDto): Promise<void> {
         const savedCourse = await this.coursesRepository.findCourse({
             _id: courseId,
         });
