@@ -5,13 +5,15 @@ import {CurrentUserDto} from "../../common/dto/current-user.dto";
 import {Types} from "mongoose";
 import {QuizzesRepository} from "../quiz/quizzes.repository";
 import {SubmissionStatus} from "./enums/submission-status.enum";
-import {QuizSubmissionUtils} from "./quiz-submission.utils";
+import {QuizSubmissionsUtil} from "./quiz-submissions.util";
 import {QuestionsRepository} from "../questions/questions.repository";
 import {AnswerDto} from "./dto/answer.dto";
 import {UserAnswer} from "./schemas/user-answers.schema";
 import {Question} from "../questions/schemas/questions.schema";
 import {AppResponseDto} from "../../common/dto/app-response.dto";
 import {HttpStatusText} from "../../common/enums/http-status-text.enum";
+import {PaginationQueryDto} from "../../common/dto/pagination-query.dto";
+import {constructPagination} from "../../common/utils/pagination.util";
 
 @Injectable()
 export class QuizSubmissionsService {
@@ -63,10 +65,10 @@ export class QuizSubmissionsService {
         const savedQuestions: Question[] = await this.questionsRepository.findAll({quiz: quizId});
 
         const answers: AnswerDto[] = submitAnswerRequest.answers;
-        const {score, questionCorrectnessMap, containsWrittenQuestion} = QuizSubmissionUtils
+        const {score, questionCorrectnessMap, containsWrittenQuestion} = QuizSubmissionsUtil
             .calculateQuizScore(savedQuestions, answers);
 
-        const userAnswers: UserAnswer[] = QuizSubmissionUtils
+        const userAnswers: UserAnswer[] = QuizSubmissionsUtil
             .buildUserAnswers(savedQuestions, answers, questionCorrectnessMap);
 
         await this.quizSubmissionsRepository.updateSubmission({

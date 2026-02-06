@@ -5,7 +5,7 @@ import {Option} from "../questions/schemas/options.schema";
 import {Types} from "mongoose";
 import {UserAnswer} from "./schemas/user-answers.schema";
 
-export class QuizSubmissionUtils {
+export class QuizSubmissionsUtil {
 
     static calculateQuizScore(savedQuestions: Question[], answers: AnswerDto[]) {
         let score: number = 0, containsWrittenQuestion: boolean = false;
