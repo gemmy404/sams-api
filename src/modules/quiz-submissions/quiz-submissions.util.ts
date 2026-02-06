@@ -26,7 +26,7 @@ export class QuizSubmissionsUtil {
 
             const answer: AnswerDto | undefined = answersMap.get(qid);
             if (!answer || !answer.selectedOptionId) {
-                questionCorrectnessMap.set(qid, {isCorrect: false, earnedPoints: question.points});
+                questionCorrectnessMap.set(qid, {isCorrect: false, earnedPoints: 0});
                 continue;
             }
 
