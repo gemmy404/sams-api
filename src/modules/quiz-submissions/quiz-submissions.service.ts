@@ -14,6 +14,13 @@ import {AppResponseDto} from "../../common/dto/app-response.dto";
 import {HttpStatusText} from "../../common/enums/http-status-text.enum";
 import {PaginationQueryDto} from "../../common/dto/pagination-query.dto";
 import {constructPagination} from "../../common/utils/pagination.util";
+import {QuizSubmissionsMapper} from "./quiz-submissions.mapper";
+import {QuizSubmissionResponseDto} from "./dto/quiz-submission-response.dto";
+import {QuestionsMapper} from "../questions/questions.mapper";
+import {UserRoles} from "../roles/enums/user-roles.enum";
+import {QuestionResponseDto} from "../questions/dto/question-response.dto";
+import {AnswerDetailsResponseDto} from "./dto/answer-details-response.dto";
+import {CorrectWrittenQuestionRequestDto} from "./dto/correct-written-question-request.dto";
 
 @Injectable()
 export class QuizSubmissionsService {
@@ -22,6 +29,8 @@ export class QuizSubmissionsService {
         private readonly quizSubmissionsRepository: QuizSubmissionsRepository,
         private readonly quizzesRepository: QuizzesRepository,
         private readonly questionsRepository: QuestionsRepository,
+        private readonly quizSubmissionsMapper: QuizSubmissionsMapper,
+        private readonly questionsMapper: QuestionsMapper,
     ) {
     }
 
@@ -88,6 +97,105 @@ export class QuizSubmissionsService {
         const appResponse: AppResponseDto<null> = {
             status: HttpStatusText.SUCCESS,
             message: 'Quiz submitted successfully',
+            data: null,
+        };
+
+        return appResponse;
+    }
+
+    async getQuizSubmissions(
+        quizId: Types.ObjectId,
+        paginationQuery: PaginationQueryDto
+    ): Promise<AppResponseDto<QuizSubmissionResponseDto[]>> {
+        const savedQuiz = await this.quizzesRepository.findQuiz({
+            _id: quizId
+        });
+        if (!savedQuiz) {
+            throw new NotFoundException('Quiz not found');
+        }
+        const {page, size} = paginationQuery;
+        const skip: number = (page - 1) * size;
+
+        const {submissions, totalElements} = await this.quizSubmissionsRepository
+            .findAll({quiz: quizId}, size, skip);
+
+        const appResponse: AppResponseDto<QuizSubmissionResponseDto[]> = {
+            status: HttpStatusText.SUCCESS,
+            data: submissions.map(this.quizSubmissionsMapper.toQuizSubmissionResponse),
+            pagination: constructPagination(totalElements, page, size),
+        }
+
+        return appResponse;
+    }
+
+    async getSubmissionDetails(submissionId: Types.ObjectId): Promise<AppResponseDto<AnswerDetailsResponseDto[]>> {
+        const savedSubmission = await this.quizSubmissionsRepository
+            .findSubmissionWithQuestion({_id: submissionId});
+        if (!savedSubmission) {
+            throw new NotFoundException('Quiz submission not found');
+        }
+
+        const answerDetailsResponse: AnswerDetailsResponseDto[] = savedSubmission.answers.map(ans => {
+            const question = ans.question as unknown as Question;
+            const questionResponse: QuestionResponseDto = this.questionsMapper
+                .toQuestionResponse(question, UserRoles.INSTRUCTOR);
+            return this.quizSubmissionsMapper.toAnswerDetailsResponse(questionResponse, ans);
+        });
+
+        const appResponse: AppResponseDto<AnswerDetailsResponseDto[]> = {
+            status: HttpStatusText.SUCCESS,
+            data: answerDetailsResponse,
+        };
+
+        return appResponse;
+    }
+
+    async gradeQuestion(
+        submissionId: Types.ObjectId,
+        questionId: Types.ObjectId,
+        correctWrittenQuestionRequest: CorrectWrittenQuestionRequestDto
+    ): Promise<AppResponseDto<null>> {
+        const {earnedPoints} = correctWrittenQuestionRequest;
+        const savedSubmission = await this.quizSubmissionsRepository.findSubmission({
+            _id: submissionId
+        });
+        if (!savedSubmission) {
+            throw new NotFoundException('Quiz submission not found');
+        }
+
+        const savedQuestion = await this.questionsRepository.findQuestion({
+            _id: questionId,
+        });
+        if (savedQuestion && earnedPoints > savedQuestion.points) {
+            throw new BadRequestException('Earned points cannot be greater than the question points');
+        }
+
+        const oldAnswer = savedSubmission.answers.find(a =>
+            a.question.toString() === questionId.toString());
+        const oldPoints = oldAnswer ? oldAnswer.earnedPoints : 0;
+
+        const pointsDifference = earnedPoints - oldPoints;
+
+        await this.quizSubmissionsRepository.updateSubmission({
+                _id: submissionId,
+                'answers.question': questionId,
+            }, {
+                $inc: {totalScore: pointsDifference},
+                $set: {
+                    'answers.$[elem].isCorrect': earnedPoints > 0,
+                    'answers.$[elem].earnedPoints': earnedPoints,
+                },
+            },
+            {
+                arrayFilters: [{
+                    'elem.question': questionId
+                }],
+                new: true
+            });
+
+        const appResponse: AppResponseDto<null> = {
+            status: HttpStatusText.SUCCESS,
+            message: 'Question graded successfully',
             data: null,
         };
 
