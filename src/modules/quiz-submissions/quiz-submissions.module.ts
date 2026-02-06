@@ -6,6 +6,7 @@ import {QuizSubmission, QuizSubmissionSchema} from "./schemas/quiz-submissions.s
 import {QuizSubmissionsRepository} from "./quiz-submissions.repository";
 import {QuizzesModule} from "../quiz/quizzes.module";
 import {QuestionsModule} from "../questions/questions.module";
+import {QuizSubmissionsMapper} from "./quiz-submissions.mapper";
 
 @Module({
     imports: [
@@ -16,7 +17,7 @@ import {QuestionsModule} from "../questions/questions.module";
         QuestionsModule,
     ],
     controllers: [QuizSubmissionsController],
-    providers: [QuizSubmissionsRepository, QuizSubmissionsService],
+    providers: [QuizSubmissionsRepository, QuizSubmissionsService, QuizSubmissionsMapper],
     exports: [QuizSubmissionsRepository, QuizSubmissionsService],
 })
 export class QuizSubmissionsModule {
