@@ -2,7 +2,6 @@ import {Injectable} from '@nestjs/common';
 import {InjectModel} from "@nestjs/mongoose";
 import {Announcement} from "./schemas/announcements.schema";
 import {Model, QueryFilter, QueryOptions, UpdateQuery} from "mongoose";
-import {QuizSubmission} from "../quiz-submissions/schemas/quiz-submissions.schema";
 
 @Injectable()
 export class AnnouncementsRepository {
@@ -26,7 +25,7 @@ export class AnnouncementsRepository {
     async updateAnnouncement(
         query: QueryFilter<Announcement>,
         updatedValue: UpdateQuery<Announcement>,
-        options: QueryOptions<QuizSubmission> = {new: true},
+        options: QueryOptions<Announcement> = {new: true},
     ) {
         return this.announcementsModel.findOneAndUpdate(query, updatedValue, options)
     }
