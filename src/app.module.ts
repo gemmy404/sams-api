@@ -20,6 +20,7 @@ import {ValidationError} from "class-validator";
 import {QuizzesModule} from "./modules/quiz/quizzes.module";
 import {QuestionsModule} from "./modules/questions/questions.module";
 import { QuizSubmissionsModule } from './modules/quiz-submissions/quiz-submissions.module';
+import { AnnouncementsModule } from './modules/announcements/announcements.module';
 
 @Module({
     imports: [
@@ -56,6 +57,7 @@ import { QuizSubmissionsModule } from './modules/quiz-submissions/quiz-submissio
         QuizzesModule,
         QuestionsModule,
         QuizSubmissionsModule,
+        AnnouncementsModule,
     ],
     providers: [
         {

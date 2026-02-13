@@ -9,6 +9,8 @@ import {InstructorQuestionsController} from "./instructor-questions.controller";
 import {QuestionsModule} from "../questions/questions.module";
 import {InstructorQuizSubmissionController} from "./instructor-quiz-submission.controller";
 import {QuizSubmissionsModule} from "../quiz-submissions/quiz-submissions.module";
+import {InstructorAnnouncementController} from "./instructor-announcement.controller";
+import {AnnouncementsModule} from "../announcements/announcements.module";
 
 @Module({
     imports: [
@@ -17,6 +19,7 @@ import {QuizSubmissionsModule} from "../quiz-submissions/quiz-submissions.module
         QuizzesModule,
         QuestionsModule,
         QuizSubmissionsModule,
+        AnnouncementsModule,
     ],
     controllers: [
         InstructorCourseController,
@@ -24,6 +27,7 @@ import {QuizSubmissionsModule} from "../quiz-submissions/quiz-submissions.module
         InstructorQuizController,
         InstructorQuestionsController,
         InstructorQuizSubmissionController,
+        InstructorAnnouncementController,
     ]
 })
 export class InstructorModule {
