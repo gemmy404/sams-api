@@ -5,18 +5,19 @@ import {CreateAnnouncementRequestDto} from "./dto/create-announcement-request.dt
 import {CurrentUserDto} from "../../common/dto/current-user.dto";
 import {AppResponseDto} from "../../common/dto/app-response.dto";
 import {HttpStatusText} from "../../common/enums/http-status-text.enum";
-import {CoursesRepository} from "../courses/courses.repository";
 import {AnnouncementResponseDto} from "./dto/announcement-response.dto";
 import {AnnouncementsMapper} from "./announcements.mapper";
 import {MaterialsService} from "../materials/materials.service";
 import {UpdateAnnouncementRequestDto} from "./dto/update-announcement-request.dto";
+import {CommentsService} from "../comments/comments.service";
+import {CommentResponseDto} from "../comments/dto/comment-response.dto";
 
 @Injectable()
 export class AnnouncementsService {
 
     constructor(
         private readonly announcementsRepository: AnnouncementsRepository,
-        private readonly coursesRepository: CoursesRepository,
+        private readonly commentsService: CommentsService,
         private readonly announcementsMapper: AnnouncementsMapper,
         private readonly materialsService: MaterialsService,
     ) {
@@ -55,6 +56,32 @@ export class AnnouncementsService {
         const appResponse: AppResponseDto<AnnouncementResponseDto[]> = {
             status: HttpStatusText.SUCCESS,
             data: announcements.map(this.announcementsMapper.toAnnouncementResponse),
+        };
+
+        return appResponse;
+    }
+
+    async getAnnouncementDetails(
+        announcementId: Types.ObjectId,
+        currentUser: CurrentUserDto
+    ): Promise<AppResponseDto<AnnouncementResponseDto>> {
+        const savedAnnouncement = await this.announcementsRepository.findAnnouncement({
+            _id: announcementId
+        });
+        if (!savedAnnouncement) {
+            throw new NotFoundException('Announcement not found');
+        }
+
+        await this.materialsService.authorizeCourseAccess(savedAnnouncement.course.toString(), currentUser);
+
+        const comments: CommentResponseDto[] = await this.commentsService.getAllComments(announcementId);
+
+        const appResponse: AppResponseDto<AnnouncementResponseDto> = {
+            status: HttpStatusText.SUCCESS,
+            data: {
+                ...this.announcementsMapper.toAnnouncementResponse(savedAnnouncement),
+                comments,
+            },
         };
 
         return appResponse;

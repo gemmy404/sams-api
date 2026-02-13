@@ -21,6 +21,7 @@ import {QuizzesModule} from "./modules/quiz/quizzes.module";
 import {QuestionsModule} from "./modules/questions/questions.module";
 import { QuizSubmissionsModule } from './modules/quiz-submissions/quiz-submissions.module';
 import { AnnouncementsModule } from './modules/announcements/announcements.module';
+import { CommentsModule } from './modules/comments/comments.module';
 
 @Module({
     imports: [
@@ -58,6 +59,7 @@ import { AnnouncementsModule } from './modules/announcements/announcements.modul
         QuestionsModule,
         QuizSubmissionsModule,
         AnnouncementsModule,
+        CommentsModule,
     ],
     providers: [
         {

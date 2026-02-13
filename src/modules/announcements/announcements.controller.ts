@@ -24,4 +24,13 @@ export class AnnouncementsController {
     ): Promise<AppResponseDto<AnnouncementResponseDto[]>> {
         return this.announcementsService.getAllAnnouncements(courseId, currentUser);
     }
+
+    @Get('announcements/:announcementId')
+    @ApiResponse({type: AnnouncementResponseDto})
+    getAnnouncementDetails(
+        @Param('announcementId', ParseObjectIdPipe) announcementId: Types.ObjectId,
+        @CurrentUser() currentUser: CurrentUserDto
+    ): Promise<AppResponseDto<AnnouncementResponseDto>> {
+        return this.announcementsService.getAnnouncementDetails(announcementId, currentUser);
+    }
 }
