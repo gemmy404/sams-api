@@ -121,4 +121,8 @@ export class CommentsService {
         return appResponse;
     }
 
+    async deleteAnnouncementComments(announcementId: Types.ObjectId) {
+        return this.commentsRepository.deleteManyComments({announcement: announcementId});
+    }
+
 }

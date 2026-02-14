@@ -35,4 +35,8 @@ export class CommentsRepository {
     async deleteComment(query: QueryFilter<Comment>) {
         return this.commentsModel.findOneAndDelete(query);
     }
+
+    async deleteManyComments(query: QueryFilter<Comment>) {
+        return this.commentsModel.deleteMany(query);
+    }
 }
