@@ -1,4 +1,4 @@
-import {BadRequestException, Injectable} from '@nestjs/common';
+import {BadRequestException, Injectable, NotFoundException} from '@nestjs/common';
 import {CoursesRepository} from "./courses.repository";
 import {CreateCourseRequestDto} from "./dto/create-course-request.dto";
 import {CurrentUserDto} from "../../common/dto/current-user.dto";
@@ -91,10 +91,14 @@ export class CoursesService {
             cw._id!.toString() === classworkId.toString()
         );
 
+        if (!requiredClasswork) {
+            throw new NotFoundException('Classwork not found');
+        }
+
         await this.coursesRepository.updateCourse(
             {_id: courseId},
             {
-                $set: {"classwork.$[elem].isVisible": !requiredClasswork!.isVisible}
+                $set: {"classwork.$[elem].isVisible": !requiredClasswork.isVisible}
             },
             {
                 arrayFilters: [{"elem._id": classworkId}],
@@ -102,11 +106,11 @@ export class CoursesService {
             }
         );
 
-        requiredClasswork!.isVisible = !requiredClasswork!.isVisible;
+        requiredClasswork.isVisible = !requiredClasswork.isVisible;
 
         const appResponse: AppResponseDto<ClassworkResponseDto> = {
             status: HttpStatusText.SUCCESS,
-            data: this.coursesMapper.toClassworkResponse(requiredClasswork!),
+            data: this.coursesMapper.toClassworkResponse(requiredClasswork),
         };
 
         return appResponse;
