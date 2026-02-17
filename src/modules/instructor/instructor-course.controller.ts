@@ -50,10 +50,11 @@ export class InstructorCourseController {
 
     @Patch(':courseId/classworks/:classworkId/toggle-visibility')
     @UseGuards(IsCourseOwnerGuard)
+    @ApiResponse({type: ClassworkResponseDto})
     toggleClassworkVisibility(
         @Param('courseId', ParseObjectIdPipe) courseId: Types.ObjectId,
         @Param('classworkId', ParseObjectIdPipe) classworkId: Types.ObjectId
-    ) {
+    ): Promise<AppResponseDto<ClassworkResponseDto>> {
         return this.coursesService.toggleClassworkVisibility(courseId, classworkId);
     }
 

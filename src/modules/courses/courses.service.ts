@@ -78,7 +78,10 @@ export class CoursesService {
         return appResponse;
     }
 
-    async toggleClassworkVisibility(courseId: Types.ObjectId, classworkId: Types.ObjectId) {
+    async toggleClassworkVisibility(
+        courseId: Types.ObjectId,
+        classworkId: Types.ObjectId
+    ): Promise<AppResponseDto<ClassworkResponseDto>> {
         const savedClassworks = await this.coursesRepository.findCourse({
                 _id: courseId,
             },
