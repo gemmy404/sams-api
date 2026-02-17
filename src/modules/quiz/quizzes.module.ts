@@ -8,6 +8,7 @@ import {QuizzesRepository} from "./quizzes.repository";
 import {MaterialsModule} from "../materials/materials.module";
 import {QuestionsModule} from "../questions/questions.module";
 import {QuizSubmissionsModule} from "../quiz-submissions/quiz-submissions.module";
+import {CoursesModule} from "../courses/courses.module";
 
 @Module({
     imports: [
@@ -17,6 +18,7 @@ import {QuizSubmissionsModule} from "../quiz-submissions/quiz-submissions.module
         MaterialsModule,
         QuestionsModule,
         QuizSubmissionsModule,
+        CoursesModule,
     ],
     controllers: [QuizzesController],
     providers: [QuizzesService, QuizzesRepository, QuizzesMapper],

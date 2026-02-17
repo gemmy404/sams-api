@@ -1,8 +1,15 @@
-import {IsDate, IsInt, IsNotEmpty, IsOptional, Min, MinDate} from "class-validator";
+import {IsDate, IsInt, IsMongoId, IsNotEmpty, IsOptional, Min, MinDate} from "class-validator";
 import {ApiProperty} from "@nestjs/swagger";
 import {Type} from "class-transformer";
+import {Types} from "mongoose";
 
 export class CreateQuizRequestDto {
+    @ApiProperty()
+    @IsNotEmpty({message: 'Classwork id is required'})
+    @IsMongoId({message: 'Classwork id must be a valid mongo id'})
+    @Type(() => Types.ObjectId)
+    classworkId: Types.ObjectId;
+
     @ApiProperty()
     @IsNotEmpty({message: 'Title is required'})
     title: string;

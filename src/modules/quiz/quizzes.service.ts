@@ -16,6 +16,7 @@ import {QuestionResponseDto} from "../questions/dto/question-response.dto";
 import {QuestionsMapper} from "../questions/questions.mapper";
 import {QuizSubmissionsRepository} from "../quiz-submissions/quiz-submissions.repository";
 import {SubmissionStatus} from "../quiz-submissions/enums/submission-status.enum";
+import {CoursesRepository} from "../courses/courses.repository";
 
 
 @Injectable()
@@ -27,6 +28,7 @@ export class QuizzesService {
         private readonly quizzesRepository: QuizzesRepository,
         private readonly questionsRepository: QuestionsRepository,
         private readonly quizSubmissionsRepository: QuizSubmissionsRepository,
+        private readonly coursesRepository: CoursesRepository,
         private readonly quizzesMapper: QuizzesMapper,
         private readonly questionsMapper: QuestionsMapper,
         private readonly materialService: MaterialsService,
@@ -40,6 +42,25 @@ export class QuizzesService {
         const {startTime, duration} = createQuizDto;
         const endTime = new Date(startTime.getTime() + duration * 60 * 1000);
 
+        const updatedRequiredClasswork = await this.coursesRepository.updateCourse(
+            {
+                _id: courseId,
+                "classwork._id": createQuizDto.classworkId,
+            },
+            {
+                $set: {"classwork.$[elem].isUsed": true}
+            },
+            {
+                arrayFilters: [{"elem._id": createQuizDto.classworkId}],
+                new: true,
+            }
+        );
+
+        if (!updatedRequiredClasswork) {
+            throw new NotFoundException('Classwork not found');
+        }
+
+        createQuizDto.classworkId = new Types.ObjectId(createQuizDto.classworkId);
         const createdCourse = await this.quizzesRepository
             .createQuiz({course: courseId, endTime, ...createQuizDto});
 
