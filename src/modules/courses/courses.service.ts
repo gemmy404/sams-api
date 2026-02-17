@@ -8,6 +8,8 @@ import {AppResponseDto} from "../../common/dto/app-response.dto";
 import {HttpStatusText} from "../../common/enums/http-status-text.enum";
 import {CourseResponseDto} from "./dto/course-response.dto";
 import {CoursesMapper} from "./courses.mapper";
+import {Classwork} from "./schemas/classwork.schema";
+import {ClassworkResponseDto} from "./dto/classwork-response.dto";
 
 @Injectable()
 export class CoursesService {
@@ -15,7 +17,7 @@ export class CoursesService {
     constructor(
         private readonly coursesRepository: CoursesRepository,
         private readonly coursesMapper: CoursesMapper,
-        ) {
+    ) {
     }
 
     async createCourse(
@@ -56,6 +58,52 @@ export class CoursesService {
         const appResponse: AppResponseDto<CourseResponseDto[]> = {
             status: HttpStatusText.SUCCESS,
             data: courses.map(this.coursesMapper.toCourseResponse)
+        };
+
+        return appResponse;
+    }
+
+    async getAvailableClassworks(courseId: Types.ObjectId): Promise<AppResponseDto<ClassworkResponseDto[]>> {
+        const savedClassworks = await this.coursesRepository.findAllClasswork({
+            _id: courseId,
+        });
+
+        const classworks: Classwork[] = savedClassworks!.classwork.filter(cw => !cw.isUsed);
+
+        const appResponse: AppResponseDto<ClassworkResponseDto[]> = {
+            status: HttpStatusText.SUCCESS,
+            data: classworks.map(this.coursesMapper.toClassworkResponse),
+        }
+
+        return appResponse;
+    }
+
+    async toggleClassworkVisibility(courseId: Types.ObjectId, classworkId: Types.ObjectId) {
+        const savedClassworks = await this.coursesRepository.findCourse({
+                _id: courseId,
+            },
+            {classwork: true});
+
+        const requiredClasswork = savedClassworks!.classwork.find(cw =>
+            cw._id!.toString() === classworkId.toString()
+        );
+
+        await this.coursesRepository.updateCourse(
+            {_id: courseId},
+            {
+                $set: {"classwork.$[elem].isVisible": !requiredClasswork!.isVisible}
+            },
+            {
+                arrayFilters: [{"elem._id": classworkId}],
+                new: true,
+            }
+        );
+
+        requiredClasswork!.isVisible = !requiredClasswork!.isVisible;
+
+        const appResponse: AppResponseDto<ClassworkResponseDto> = {
+            status: HttpStatusText.SUCCESS,
+            data: this.coursesMapper.toClassworkResponse(requiredClasswork!),
         };
 
         return appResponse;
