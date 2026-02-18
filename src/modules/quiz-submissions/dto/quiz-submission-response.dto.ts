@@ -18,4 +18,7 @@ export class QuizSubmissionResponseDto {
 
     @ApiProperty()
     submittedAt: string;
+
+    @ApiProperty()
+    isGraded: boolean;
 }

@@ -19,6 +19,7 @@ export class QuizSubmissionsMapper {
             studentName: student.name,
             score: quizSubmission.totalScore,
             submittedAt: quizSubmission.submittedAt.toLocaleString(),
+            isGraded: !!quizSubmission.gradedAt,
         };
     }
 
