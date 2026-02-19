@@ -1,4 +1,4 @@
-import {Body, Controller, Get, Param, Patch, Post, UseGuards} from '@nestjs/common';
+import {Body, Controller, Delete, Get, Param, Patch, Post, UseGuards} from '@nestjs/common';
 import {CoursesService} from '../courses/courses.service';
 import {CreateCourseRequestDto} from "../courses/dto/create-course-request.dto";
 import {CurrentUser} from "../../common/decorators/current-user.decorator";
@@ -37,6 +37,14 @@ export class InstructorCourseController {
     @ApiOperation({summary: 'Find my created courses'})
     findMyCreatedCourses(@CurrentUser() currentUser: CurrentUserDto): Promise<AppResponseDto<CourseResponseDto[]>> {
         return this.coursesService.findCreatedMyCourse(currentUser);
+    }
+
+    @Delete(':courseId')
+    @UseGuards(IsCourseOwnerGuard)
+    deleteCourse(
+        @Param('courseId', ParseObjectIdPipe) courseId: Types.ObjectId
+    ): Promise<AppResponseDto<null>> {
+        return this.coursesService.deleteCourse(courseId);
     }
 
     @Get(':courseId/classworks')

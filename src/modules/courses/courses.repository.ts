@@ -38,6 +38,10 @@ export class CoursesRepository {
         return this.coursesModel.findOneAndUpdate(query, updatedValue, options);
     }
 
+    async deleteCourse(query: QueryFilter<Course>) {
+        return this.coursesModel.findOneAndDelete(query);
+    }
+
     async findAllClasswork(query: QueryFilter<Course>) {
         return this.coursesModel.findOne(query, {classwork: true});
     }

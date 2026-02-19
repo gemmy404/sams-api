@@ -10,12 +10,14 @@ import {CourseResponseDto} from "./dto/course-response.dto";
 import {CoursesMapper} from "./courses.mapper";
 import {Classwork} from "./schemas/classwork.schema";
 import {ClassworkResponseDto} from "./dto/classwork-response.dto";
+import {EnrollmentsRepository} from "../enrollments/enrollments.repository";
 
 @Injectable()
 export class CoursesService {
 
     constructor(
         private readonly coursesRepository: CoursesRepository,
+        private readonly enrollmentsRepository: EnrollmentsRepository,
         private readonly coursesMapper: CoursesMapper,
     ) {
     }
@@ -58,6 +60,21 @@ export class CoursesService {
         const appResponse: AppResponseDto<CourseResponseDto[]> = {
             status: HttpStatusText.SUCCESS,
             data: courses.map(this.coursesMapper.toCourseResponse)
+        };
+
+        return appResponse;
+    }
+
+    async deleteCourse(courseId: Types.ObjectId): Promise<AppResponseDto<null>> {
+        await Promise.all([
+            this.enrollmentsRepository.deleteMany({course: courseId.toString()}),
+            this.coursesRepository.deleteCourse({_id: courseId}),
+        ]);
+
+        const appResponse: AppResponseDto<null> = {
+            status: HttpStatusText.SUCCESS,
+            message: 'Course deleted successfully',
+            data: null,
         };
 
         return appResponse;
