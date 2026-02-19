@@ -211,16 +211,16 @@ export class MaterialsService {
         const roles = currentUser.roles as string[];
         if (roles.includes('instructor')) {
             if (savedCourse.instructor.toString() !== currentUser._id) {
-                throw new ForbiddenException('You can only manage materials for' +
-                    ' courses you have created');
+                throw new ForbiddenException('You do not have permission to manage ' +
+                    'this resource in this course');
             }
         } else {
             const savedEnrollment = await this.enrollmentsRepository
                 .findByUserIdAndCourseId(currentUser._id, courseId);
 
             if (!savedEnrollment) {
-                throw new ForbiddenException('You must be enrolled in' +
-                    ' this course to view its materials');
+                throw new ForbiddenException('You must be enrolled in this course ' +
+                    'to access this content');
             }
         }
     }
