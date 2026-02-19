@@ -17,6 +17,7 @@ import {QuestionsMapper} from "../questions/questions.mapper";
 import {QuizSubmissionsRepository} from "../quiz-submissions/quiz-submissions.repository";
 import {SubmissionStatus} from "../quiz-submissions/enums/submission-status.enum";
 import {CoursesRepository} from "../courses/courses.repository";
+import {QuizStatus} from "./enums/quiz-status.enum";
 
 
 @Injectable()
@@ -214,6 +215,48 @@ export class QuizzesService {
             status: HttpStatusText.SUCCESS,
             data: questions.map(question =>
                 this.questionsMapper.toQuestionResponse(question, userRole))
+        };
+
+        return appResponse;
+    }
+
+    async deleteQuiz(
+        quizId: Types.ObjectId,
+        currentUser: CurrentUserDto
+    ): Promise<AppResponseDto<null>> {
+        const savedQuiz = await this.quizzesRepository.findQuiz({
+            _id: quizId
+        });
+        if (!savedQuiz) {
+            throw new NotFoundException('Quiz not found');
+        }
+
+        await this.materialService.authorizeCourseAccess(savedQuiz.course.toString(), currentUser);
+
+        if (savedQuiz.endTime.getTime() < Date.now() && (savedQuiz as any).status !== QuizStatus.DRAFT) {
+            throw new BadRequestException('Quiz has already ended, it cannot be deleted');
+        }
+
+        await Promise.all([
+            this.quizzesRepository.deleteQuiz({_id: quizId}),
+            this.coursesRepository.updateCourse(
+                {
+                    _id: savedQuiz.course,
+                    "classwork._id": savedQuiz.classworkId,
+                },
+                {
+                    $set: {"classwork.$[elem].isUsed": false}
+                },
+                {
+                    arrayFilters: [{"elem._id": savedQuiz.classworkId}]
+                }
+            ),
+        ]);
+
+        const appResponse: AppResponseDto<null> = {
+            status: HttpStatusText.SUCCESS,
+            message: 'Quiz deleted successfully, and classwork unlocked',
+            data: null,
         };
 
         return appResponse;

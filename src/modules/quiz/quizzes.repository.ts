@@ -27,4 +27,8 @@ export class QuizzesRepository {
         return this.quizzesModel.findOneAndUpdate(query, updatedValue, {new: true});
     }
 
+    async deleteQuiz(query: QueryFilter<Quiz>) {
+        return this.quizzesModel.findOneAndDelete(query);
+    }
+
 }

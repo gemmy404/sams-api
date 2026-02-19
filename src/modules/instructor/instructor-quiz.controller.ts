@@ -1,4 +1,4 @@
-import {Body, Controller, Param, Patch, Post, UseGuards} from '@nestjs/common';
+import {Body, Controller, Delete, Param, Patch, Post, UseGuards} from '@nestjs/common';
 import {JwtAuthGuard} from "../auth/guards/jwt-auth.guard";
 import {Roles} from "../../common/decorators/roles.decorator";
 import {UserRoles} from "../roles/enums/user-roles.enum";
@@ -51,6 +51,14 @@ export class InstructorQuizController {
         @CurrentUser() currentUser: CurrentUserDto
     ): Promise<AppResponseDto<QuizResponseDto>> {
         return this.quizzesService.togglePublishedQuiz(quizId, currentUser);
+    }
+
+    @Delete('quizzes/:quizId')
+    deleteQuiz(
+        @Param('quizId', ParseObjectIdPipe) quizId: Types.ObjectId,
+        @CurrentUser() currentUser: CurrentUserDto
+    ): Promise<AppResponseDto<null>> {
+        return this.quizzesService.deleteQuiz(quizId, currentUser);
     }
 
 }
