@@ -11,6 +11,8 @@ import {CoursesMapper} from "./courses.mapper";
 import {Classwork} from "./schemas/classwork.schema";
 import {ClassworkResponseDto} from "./dto/classwork-response.dto";
 import {EnrollmentsRepository} from "../enrollments/enrollments.repository";
+import {UpdateCourseRequestDto} from "./dto/update-course-request.dto";
+import {CourseDetailsResponseDto} from "./dto/course-details-response.dto";
 
 @Injectable()
 export class CoursesService {
@@ -60,6 +62,71 @@ export class CoursesService {
         const appResponse: AppResponseDto<CourseResponseDto[]> = {
             status: HttpStatusText.SUCCESS,
             data: courses.map(this.coursesMapper.toCourseResponse)
+        };
+
+        return appResponse;
+    }
+
+    async findCourseDetails(courseId: Types.ObjectId): Promise<AppResponseDto<CourseDetailsResponseDto>> {
+        const savedCourse = await this.coursesRepository.findCourse({_id: courseId});
+        if (!savedCourse) {
+            throw new NotFoundException('Course not found');
+        }
+
+        const appResponse: AppResponseDto<CourseDetailsResponseDto> = {
+            status: HttpStatusText.SUCCESS,
+            data: {
+                ...this.coursesMapper.toCourseResponse(savedCourse),
+                classwork: savedCourse.classwork.map(this.coursesMapper.toClassworkResponse),
+            },
+        };
+
+        return appResponse;
+    }
+
+    async updateCourse(
+        courseId: Types.ObjectId,
+        updateCourseRequestDto: UpdateCourseRequestDto
+    ): Promise<AppResponseDto<CourseDetailsResponseDto>> {
+        const savedCourse = await this.coursesRepository.findCourse({
+            _id: courseId
+        });
+
+        const classwork = updateCourseRequestDto.classwork;
+        if (classwork && classwork.length > 0) {
+            if (classwork.length !== savedCourse!.classwork.length) {
+                throw new BadRequestException('Classwork length must be the same as the original one');
+            }
+
+            const existingIdsSet = new Set(savedCourse!.classwork.map(cw => cw._id!.toString()));
+
+            const allIdsValid: boolean = classwork.every(cw => existingIdsSet.has(cw._id));
+            if (!allIdsValid) {
+                throw new BadRequestException('Invalid Classwork IDs provided');
+            }
+
+            let totalGrades: number = classwork.reduce((acc, curr) =>
+                acc + curr.points, 0);
+
+            totalGrades += updateCourseRequestDto.finalExam || savedCourse!.finalExam;
+            const totalCourseGrades: number = (updateCourseRequestDto.totalGrades || savedCourse!.totalGrades);
+
+            if (totalGrades !== totalCourseGrades) {
+                throw new BadRequestException(`Sum of grades must equal total grades: ${totalCourseGrades}`);
+            }
+        }
+
+        const updatedCourse = await this.coursesRepository.updateCourse({
+                _id: courseId
+            },
+            {$set: updateCourseRequestDto});
+
+        const appResponse: AppResponseDto<CourseDetailsResponseDto> = {
+            status: HttpStatusText.SUCCESS,
+            data: {
+                ...this.coursesMapper.toCourseResponse(updatedCourse!),
+                classwork: updatedCourse!.classwork.map(this.coursesMapper.toClassworkResponse),
+            },
         };
 
         return appResponse;

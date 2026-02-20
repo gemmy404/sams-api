@@ -14,6 +14,8 @@ import {Types} from "mongoose";
 import {ParseObjectIdPipe} from "@nestjs/mongoose";
 import {IsCourseOwnerGuard} from "../courses/guards/is-course-owner.guard";
 import {ClassworkResponseDto} from "../courses/dto/classwork-response.dto";
+import {CourseDetailsResponseDto} from "../courses/dto/course-details-response.dto";
+import {UpdateCourseRequestDto} from "../courses/dto/update-course-request.dto";
 
 @ApiBearerAuth('access-token')
 @Controller('api/v1/instructor/courses')
@@ -37,6 +39,25 @@ export class InstructorCourseController {
     @ApiOperation({summary: 'Find my created courses'})
     findMyCreatedCourses(@CurrentUser() currentUser: CurrentUserDto): Promise<AppResponseDto<CourseResponseDto[]>> {
         return this.coursesService.findCreatedMyCourse(currentUser);
+    }
+
+    @Get(':courseId')
+    @UseGuards(IsCourseOwnerGuard)
+    @ApiResponse({type: CourseDetailsResponseDto})
+    findCourseDetails(
+        @Param('courseId', ParseObjectIdPipe) courseId: Types.ObjectId
+    ): Promise<AppResponseDto<CourseDetailsResponseDto>> {
+        return this.coursesService.findCourseDetails(courseId);
+    }
+
+    @Patch(':courseId')
+    @UseGuards(IsCourseOwnerGuard)
+    @ApiResponse({type: CourseDetailsResponseDto})
+    updateCourse(
+        @Param('courseId', ParseObjectIdPipe) courseId: Types.ObjectId,
+        @Body() updateCourseRequest: UpdateCourseRequestDto
+    ): Promise<AppResponseDto<CourseDetailsResponseDto>> {
+        return this.coursesService.updateCourse(courseId, updateCourseRequest)
     }
 
     @Delete(':courseId')
