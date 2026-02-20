@@ -16,6 +16,7 @@ import {IsCourseOwnerGuard} from "../courses/guards/is-course-owner.guard";
 import {ClassworkResponseDto} from "../courses/dto/classwork-response.dto";
 import {CourseDetailsResponseDto} from "../courses/dto/course-details-response.dto";
 import {UpdateCourseRequestDto} from "../courses/dto/update-course-request.dto";
+import {CourseClassworkDto} from "../courses/dto/course-classwork.dto";
 
 @ApiBearerAuth('access-token')
 @Controller('api/v1/instructor/courses')
@@ -68,6 +69,15 @@ export class InstructorCourseController {
         return this.coursesService.deleteCourse(courseId);
     }
 
+    @Post(':courseId/classworks')
+    @UseGuards(IsCourseOwnerGuard)
+    addClasswork(
+        @Param('courseId', ParseObjectIdPipe) courseId: Types.ObjectId,
+        @Body() classworkRequest: CourseClassworkDto
+    ): Promise<AppResponseDto<null>> {
+        return this.coursesService.addClasswork(courseId, classworkRequest);
+    }
+
     @Get(':courseId/classworks')
     @UseGuards(IsCourseOwnerGuard)
     @ApiResponse({type: [ClassworkResponseDto]})
@@ -85,6 +95,15 @@ export class InstructorCourseController {
         @Param('classworkId', ParseObjectIdPipe) classworkId: Types.ObjectId
     ): Promise<AppResponseDto<ClassworkResponseDto>> {
         return this.coursesService.toggleClassworkVisibility(courseId, classworkId);
+    }
+
+    @Delete(':courseId/classworks/:classworkId')
+    @UseGuards(IsCourseOwnerGuard)
+    deleteClasswork(
+        @Param('courseId', ParseObjectIdPipe) courseId: Types.ObjectId,
+        @Param('classworkId', ParseObjectIdPipe) classworkId: Types.ObjectId
+    ): Promise<AppResponseDto<null>> {
+        return this.coursesService.deleteClasswork(courseId, classworkId);
     }
 
 }

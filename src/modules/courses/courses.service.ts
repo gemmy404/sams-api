@@ -13,6 +13,7 @@ import {ClassworkResponseDto} from "./dto/classwork-response.dto";
 import {EnrollmentsRepository} from "../enrollments/enrollments.repository";
 import {UpdateCourseRequestDto} from "./dto/update-course-request.dto";
 import {CourseDetailsResponseDto} from "./dto/course-details-response.dto";
+import {CourseClassworkDto} from "./dto/course-classwork.dto";
 
 @Injectable()
 export class CoursesService {
@@ -147,6 +148,40 @@ export class CoursesService {
         return appResponse;
     }
 
+    async addClasswork(
+        courseId: Types.ObjectId,
+        createClassworkRequest: CourseClassworkDto
+    ): Promise<AppResponseDto<null>> {
+        const savedCourse = await this.coursesRepository.findCourse({
+            _id: courseId
+        });
+
+        const isDuplicate: boolean = savedCourse!.classwork.some(cw =>
+            cw.name === createClassworkRequest.name
+        );
+        if (isDuplicate) {
+            throw new BadRequestException(
+                `Classwork with name (${createClassworkRequest.name}) already exists`
+            );
+        }
+
+        await this.coursesRepository.updateCourse(
+            {_id: courseId},
+            {
+                $push: {"classwork": createClassworkRequest},
+                $inc: {"totalGrades": createClassworkRequest.points}
+            }
+        );
+
+        const appResponse: AppResponseDto<null> = {
+            status: HttpStatusText.SUCCESS,
+            message: 'Classwork added successfully',
+            data: null,
+        };
+
+        return appResponse;
+    }
+
     async getAvailableClassworks(courseId: Types.ObjectId): Promise<AppResponseDto<ClassworkResponseDto[]>> {
         const savedClassworks = await this.coursesRepository.findAllClasswork({
             _id: courseId,
@@ -195,6 +230,45 @@ export class CoursesService {
         const appResponse: AppResponseDto<ClassworkResponseDto> = {
             status: HttpStatusText.SUCCESS,
             data: this.coursesMapper.toClassworkResponse(requiredClasswork),
+        };
+
+        return appResponse;
+    }
+
+    async deleteClasswork(
+        courseId: Types.ObjectId,
+        classworkId: Types.ObjectId
+    ): Promise<AppResponseDto<null>> {
+        const savedClassworks = await this.coursesRepository.findCourse({
+                _id: courseId,
+            },
+            {classwork: true});
+
+        const requiredClasswork = savedClassworks!.classwork.find(cw =>
+            cw._id!.toString() === classworkId.toString()
+        );
+
+        if (!requiredClasswork) {
+            throw new NotFoundException('Classwork not found');
+        }
+
+        if (requiredClasswork.isUsed) {
+            throw new BadRequestException('Cannot delete classwork:' +
+                ' Students already have grades assigned to it');
+        }
+
+        await this.coursesRepository.updateCourse(
+            {_id: courseId},
+            {
+                $pull: {"classwork": {_id: classworkId}},
+                $inc: {"totalGrades": -requiredClasswork.points}
+            }
+        );
+
+        const appResponse: AppResponseDto<null> = {
+            status: HttpStatusText.SUCCESS,
+            message: 'Classwork deleted successfully',
+            data: null,
         };
 
         return appResponse;
