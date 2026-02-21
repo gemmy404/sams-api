@@ -17,6 +17,12 @@ export class Quiz {
     course: Types.ObjectId;
 
     @Prop({
+        type: Types.ObjectId,
+        required: true,
+    })
+    classworkId: Types.ObjectId;
+
+    @Prop({
         type: String,
         required: true,
     })

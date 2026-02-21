@@ -1,4 +1,4 @@
-import {Module} from '@nestjs/common';
+import {forwardRef, Module} from '@nestjs/common';
 import {EnrollmentsService} from './enrollments.service';
 import {EnrollmentsController} from './enrollments.controller';
 import {EnrollmentsRepository} from "./enrollments.repository";
@@ -11,7 +11,7 @@ import {CoursesModule} from "../courses/courses.module";
         MongooseModule.forFeature([
             {name: Enrollment.name, schema: EnrollmentSchema},
         ]),
-        CoursesModule,
+        forwardRef(() => CoursesModule),
     ],
     controllers: [EnrollmentsController],
     providers: [EnrollmentsService, EnrollmentsRepository],

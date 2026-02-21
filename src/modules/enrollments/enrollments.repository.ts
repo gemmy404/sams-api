@@ -44,4 +44,8 @@ export class EnrollmentsRepository {
             course: courseId
         });
     }
+
+    async deleteMany(query: QueryFilter<Course>) {
+        return this.enrollmentModel.deleteMany(query);
+    }
 }

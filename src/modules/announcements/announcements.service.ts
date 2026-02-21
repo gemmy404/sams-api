@@ -129,6 +129,7 @@ export class AnnouncementsService {
         await this.materialsService.authorizeCourseAccess(savedAnnouncement.course.toString(), currentUser);
 
         await this.announcementsRepository.deleteAnnouncement({_id: announcementId});
+        await this.commentsService.deleteAnnouncementComments(announcementId);
 
         const appResponse: AppResponseDto<null> = {
             status: HttpStatusText.SUCCESS,

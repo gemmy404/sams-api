@@ -2,6 +2,8 @@ import {Injectable} from "@nestjs/common";
 import {Course} from "./schemas/courses.schema";
 import {CourseResponseDto} from "./dto/course-response.dto";
 import {Users} from "../users/schemas/users.schema";
+import {Classwork} from "./schemas/classwork.schema";
+import {ClassworkResponseDto} from "./dto/classwork-response.dto";
 
 @Injectable()
 export class CoursesMapper {
@@ -15,6 +17,15 @@ export class CoursesMapper {
             courseInvitationCode: course.courseInvitationCode,
             instructor: instructor.name
         };
+    }
+
+    toClassworkResponse(this: void, classwork: Classwork): ClassworkResponseDto {
+        return {
+            _id: classwork._id!.toString(),
+            name: classwork.name,
+            points: classwork.points,
+            isVisible: classwork.isVisible
+        }
     }
 
 }
