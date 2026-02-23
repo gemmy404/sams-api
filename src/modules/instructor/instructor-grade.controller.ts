@@ -28,6 +28,6 @@ export class InstructorGradeController {
         @Query() filterDto: GetEnrollmentsFilterDto,
         @Headers('accept-language') lang: string = 'ar'
     ): Promise<AppResponseDto<GradeResponseDto>> {
-        return this.gradesService.findAllGrades(courseId, filterDto, lang);
+        return this.gradesService.getCourseGradesSheet(courseId, filterDto, lang);
     }
 }

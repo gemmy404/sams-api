@@ -24,7 +24,7 @@ export class GradesService {
     ) {
     }
 
-    async findAllGrades(
+    async getCourseGradesSheet(
         courseId: Types.ObjectId,
         filterDto: GetEnrollmentsFilterDto,
         locale: string = 'ar'
