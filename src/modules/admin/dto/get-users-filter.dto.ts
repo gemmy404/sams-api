@@ -42,7 +42,7 @@ export class GetUsersFilterDto {
     })
     @IsOptional()
     @IsEnum(['asc', 'desc'], {message: 'Sort Order must be one of asc, desc'})
-    sortOrder: string = 'asc';
+    sortOrder: string = 'desc';
 
     @ApiProperty({
         required: false,
