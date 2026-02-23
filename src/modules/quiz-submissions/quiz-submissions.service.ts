@@ -21,6 +21,8 @@ import {UserRoles} from "../roles/enums/user-roles.enum";
 import {QuestionResponseDto} from "../questions/dto/question-response.dto";
 import {AnswerDetailsResponseDto} from "./dto/answer-details-response.dto";
 import {CorrectWrittenQuestionRequestDto} from "./dto/correct-written-question-request.dto";
+import {GradesRepository} from "../grades/grades.repository";
+import {Grade} from "../grades/schemas/grades.schema";
 
 @Injectable()
 export class QuizSubmissionsService {
@@ -29,6 +31,7 @@ export class QuizSubmissionsService {
         private readonly quizSubmissionsRepository: QuizSubmissionsRepository,
         private readonly quizzesRepository: QuizzesRepository,
         private readonly questionsRepository: QuestionsRepository,
+        private readonly gradesRepository: GradesRepository,
         private readonly quizSubmissionsMapper: QuizSubmissionsMapper,
         private readonly questionsMapper: QuestionsMapper,
     ) {
@@ -93,6 +96,16 @@ export class QuizSubmissionsService {
                 }
             }
         );
+
+        if (!containsWrittenQuestion) {
+            const grade: Grade = {
+                student: new Types.ObjectId(currentUser._id),
+                course: savedQuiz.course,
+                classworkId: savedQuiz.classworkId,
+                score: score,
+            };
+            await this.gradesRepository.createGrade(grade);
+        }
 
         const appResponse: AppResponseDto<null> = {
             status: HttpStatusText.SUCCESS,
