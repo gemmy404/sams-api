@@ -29,10 +29,17 @@ export class Grade {
 
     @Prop({
         type: Number,
-        required: true,
+        required: false,
         default: 0
     })
     score: number;
+
+    @Prop({
+        type: Number,
+        required: false,
+        default: 1
+    })
+    maxScore: number;
 }
 
 export const GradeSchema = SchemaFactory.createForClass(Grade);

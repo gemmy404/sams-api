@@ -1,4 +1,4 @@
-import {ApiBearerAuth} from "@nestjs/swagger";
+import {ApiBearerAuth, ApiResponse} from "@nestjs/swagger";
 import {Controller, Get, Headers, Param, Query, UseGuards} from "@nestjs/common";
 import {JwtAuthGuard} from "../auth/guards/jwt-auth.guard";
 import {RolesGuard} from "../auth/guards/roles.guard";
@@ -23,6 +23,7 @@ export class InstructorGradeController {
 
     @Get('courses/:courseId/grades')
     @UseGuards(IsCourseOwnerGuard)
+    @ApiResponse({type: [GradeResponseDto]})
     findAllGrades(
         @Param('courseId', ParseObjectIdPipe) courseId: Types.ObjectId,
         @Query() filterDto: GetEnrollmentsFilterDto,

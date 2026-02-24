@@ -103,6 +103,7 @@ export class QuizSubmissionsService {
                 course: savedQuiz.course,
                 classworkId: savedQuiz.classworkId,
                 score: score,
+                maxScore: savedQuiz.totalScore,
             };
             await this.gradesRepository.createGrade(grade);
         }
