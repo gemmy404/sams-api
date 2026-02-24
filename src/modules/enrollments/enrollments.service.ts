@@ -50,7 +50,7 @@ export class EnrollmentsService {
 
     async findMyJoinedCourses(currentUser: CurrentUserDto): Promise<AppResponseDto<CourseResponseDto[]>> {
         const enrollments = await this.enrollmentsRepository.findAll({
-            user: currentUser._id
+            user: new Types.ObjectId(currentUser._id)
         }, 'enrolledAt');
 
         const appResponse: AppResponseDto<CourseResponseDto[]> = {

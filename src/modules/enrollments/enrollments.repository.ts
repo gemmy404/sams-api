@@ -19,8 +19,8 @@ export class EnrollmentsRepository {
 
     async findByUserIdAndCourseId(userId: string, courseId: string) {
         return this.enrollmentModel.findOne({
-            user: userId,
-            course: courseId
+            user: new Types.ObjectId(userId),
+            course: new Types.ObjectId(courseId)
         });
     }
 
@@ -40,8 +40,8 @@ export class EnrollmentsRepository {
 
     async deleteByUserIdAndCourseId(userId: string, courseId: string) {
         return this.enrollmentModel.deleteOne({
-            user: userId,
-            course: courseId
+            user: new Types.ObjectId(userId),
+            course: new Types.ObjectId(courseId)
         });
     }
 

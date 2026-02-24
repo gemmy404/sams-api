@@ -1,4 +1,4 @@
-import {IsNotEmpty, IsNumber, MaxLength} from "class-validator";
+import {IsNotEmpty, IsNumber, MaxLength, Min} from "class-validator";
 import {ApiProperty} from "@nestjs/swagger";
 
 export class CourseClassworkDto {
@@ -10,5 +10,6 @@ export class CourseClassworkDto {
     @ApiProperty()
     @IsNotEmpty({message: 'Points is required'})
     @IsNumber({}, {message: 'Points must be a number'})
+    @Min(1, {message: 'Points must be greater than 0'})
     points: number;
 }
