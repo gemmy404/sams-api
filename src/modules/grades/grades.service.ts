@@ -1,4 +1,4 @@
-import {Injectable} from '@nestjs/common';
+import {Injectable, NotFoundException} from '@nestjs/common';
 import {GradesRepository} from "./grades.repository";
 import {Types} from "mongoose";
 import {CoursesRepository} from "../courses/courses.repository";
@@ -11,6 +11,9 @@ import {GradeResponseDto} from "./dto/grade-response.dto";
 import {AppResponseDto} from "../../common/dto/app-response.dto";
 import {HttpStatusText} from "../../common/enums/http-status-text.enum";
 import {constructPagination} from "../../common/utils/pagination.util";
+import {CurrentUserDto} from "../../common/dto/current-user.dto";
+import {MaterialsService} from "../materials/materials.service";
+import {MyGradeResponseDto} from "./dto/my-grade-response.dto";
 
 @Injectable()
 export class GradesService {
@@ -21,6 +24,7 @@ export class GradesService {
         private readonly enrollmentsRepository: EnrollmentsRepository,
         private readonly gradesMapper: GradesMapper,
         private readonly coursesMapper: CoursesMapper,
+        private readonly materialsService: MaterialsService,
     ) {
     }
 
@@ -47,15 +51,41 @@ export class GradesService {
             search
         )
 
-        const columns: ClassworkResponseDto[] = classworks.map(this.coursesMapper.toClassworkResponse);
-
         const appResponse: AppResponseDto<GradeResponseDto> = {
             status: HttpStatusText.SUCCESS,
             data: {
-                ...this.gradesMapper.toGradeResponse(grades, columns),
+                ...this.gradesMapper.toGradeResponse(grades, classworks),
             },
             pagination: constructPagination(totalElements, page, size),
         };
+
+        return appResponse;
+    }
+
+    async getStudentGrades(
+        courseId: Types.ObjectId,
+        currentUser: CurrentUserDto
+    ): Promise<AppResponseDto<MyGradeResponseDto>> {
+        const savedCourse = await this.courseRepository.findCourse({
+            _id: courseId
+        }, {classwork: true});
+        if (!savedCourse) {
+            throw new NotFoundException('Course not found');
+        }
+
+        await this.materialsService.authorizeCourseAccess(courseId.toString(), currentUser);
+
+        const classworks = savedCourse.classwork.filter(cw => cw.isVisible);
+
+        const savedGrades = await this.gradesRepository.findAll({
+            course: courseId,
+            student: new Types.ObjectId(currentUser._id),
+        });
+
+        const appResponse: AppResponseDto<MyGradeResponseDto> = {
+            status: HttpStatusText.SUCCESS,
+            data: this.gradesMapper.toMyGradeResponse(savedGrades, classworks),
+        }
 
         return appResponse;
     }

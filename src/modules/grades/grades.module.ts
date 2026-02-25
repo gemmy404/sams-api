@@ -7,6 +7,7 @@ import {GradesRepository} from "./grades.repository";
 import {CoursesModule} from "../courses/courses.module";
 import {EnrollmentsModule} from "../enrollments/enrollments.module";
 import {GradesMapper} from "./grades.mapper";
+import {MaterialsModule} from "../materials/materials.module";
 
 @Module({
     imports: [
@@ -15,6 +16,7 @@ import {GradesMapper} from "./grades.mapper";
         ]),
         CoursesModule,
         EnrollmentsModule,
+        MaterialsModule,
     ],
     controllers: [GradesController],
     providers: [GradesRepository, GradesService, GradesMapper],
