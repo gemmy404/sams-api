@@ -1,7 +1,7 @@
 import {Injectable} from '@nestjs/common';
 import {InjectModel} from "@nestjs/mongoose";
 import {QuizSubmission} from "./schemas/quiz-submissions.schema";
-import {Model, QueryFilter, QueryOptions, UpdateQuery} from "mongoose";
+import {Model, PopulateOptions, QueryFilter, QueryOptions, UpdateQuery} from "mongoose";
 
 @Injectable()
 export class QuizSubmissionsRepository {
@@ -40,8 +40,10 @@ export class QuizSubmissionsRepository {
     async updateSubmission(
         query: QueryFilter<QuizSubmission>,
         updatedValue: UpdateQuery<QuizSubmission>,
-        options: QueryOptions<QuizSubmission> = {new: true}
+        options: QueryOptions<QuizSubmission> = {new: true},
+        populated: PopulateOptions[] = []
     ) {
-        return this.quizSubmissionsModel.findOneAndUpdate(query, updatedValue, options);
+        return this.quizSubmissionsModel.findOneAndUpdate(query, updatedValue, options)
+            .populate(populated);
     }
 }

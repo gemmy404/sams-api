@@ -48,4 +48,11 @@ export class InstructorQuizSubmissionController {
         return this.quizSubmissionsService.gradeQuestion(submissionId, questionId, correctWrittenQuestionRequest)
     }
 
+    @Patch('submissions/:submissionId/mark-as-graded')
+    markQuizAsGraded(
+        @Param('submissionId', ParseObjectIdPipe) submissionId: Types.ObjectId,
+    ): Promise<AppResponseDto<null>> {
+        return this.quizSubmissionsService.markQuizAsGraded(submissionId);
+    }
+
 }
