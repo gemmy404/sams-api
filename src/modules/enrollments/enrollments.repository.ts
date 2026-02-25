@@ -53,8 +53,8 @@ export class EnrollmentsRepository {
         courseId: Types.ObjectId,
         sortBy: string,
         sortOrder: 'asc' | 'desc',
-        size: number,
-        skip: number,
+        size: number | undefined,
+        skip: number | undefined,
         locale: string = 'ar',
         search?: string
     ) {
@@ -132,23 +132,28 @@ export class EnrollmentsRepository {
         }
         pipeline.push({$sort: sortStage});
 
+        const dataStages: any[] = [];
+
+        if (skip !== undefined && size !== undefined) {
+            dataStages.push({$skip: skip});
+            dataStages.push({$limit: size});
+        }
+
+        dataStages.push({
+            $project: {
+                _id: 0,
+                student: {
+                    academicId: '$studentData.academicId',
+                    name: '$studentData.name'
+                },
+                grades: '$gradesMap'
+            }
+        });
+
         pipeline.push({
             $facet: {
                 metadata: [{$count: "total"}],
-                data: [
-                    {$skip: skip},
-                    {$limit: size},
-                    {
-                        $project: {
-                            _id: 0,
-                            student: {
-                                academicId: '$studentData.academicId',
-                                name: '$studentData.name'
-                            },
-                            grades: '$gradesMap'
-                        }
-                    }
-                ]
+                data: dataStages
             }
         });
 

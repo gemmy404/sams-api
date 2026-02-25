@@ -6,7 +6,6 @@ import {EnrollmentsRepository} from "../enrollments/enrollments.repository";
 import {CoursesMapper} from "../courses/courses.mapper";
 import {GradesMapper} from "./grades.mapper";
 import {GetEnrollmentsFilterDto} from "./dto/get-enrollments-filter.dto";
-import {ClassworkResponseDto} from "../courses/dto/classwork-response.dto";
 import {GradeResponseDto} from "./dto/grade-response.dto";
 import {AppResponseDto} from "../../common/dto/app-response.dto";
 import {HttpStatusText} from "../../common/enums/http-status-text.enum";
@@ -34,7 +33,7 @@ export class GradesService {
         locale: string = 'ar'
     ): Promise<AppResponseDto<GradeResponseDto>> {
         const {search, sortBy, sortOrder, page, size} = filterDto;
-        const skip = (page - 1) * size;
+        const skip = page && size ? (page - 1) * size : undefined;
 
         const savedCourse = await this.courseRepository.findCourse({
             _id: courseId
