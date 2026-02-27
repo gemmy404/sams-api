@@ -8,6 +8,7 @@ import {CoursesModule} from "../courses/courses.module";
 import {EnrollmentsModule} from "../enrollments/enrollments.module";
 import {GradesMapper} from "./grades.mapper";
 import {MaterialsModule} from "../materials/materials.module";
+import {GradesCsvService} from "./grades-csv.service";
 
 @Module({
     imports: [
@@ -19,8 +20,8 @@ import {MaterialsModule} from "../materials/materials.module";
         MaterialsModule,
     ],
     controllers: [GradesController],
-    providers: [GradesRepository, GradesService, GradesMapper],
-    exports: [GradesRepository, GradesService]
+    providers: [GradesRepository, GradesService, GradesCsvService,GradesMapper],
+    exports: [GradesRepository, GradesService, GradesCsvService]
 })
 export class GradesModule {
 }
