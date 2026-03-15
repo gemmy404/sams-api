@@ -11,6 +11,8 @@ import {InstructorQuizSubmissionController} from "./instructor-quiz-submission.c
 import {QuizSubmissionsModule} from "../quiz-submissions/quiz-submissions.module";
 import {InstructorAnnouncementController} from "./instructor-announcement.controller";
 import {AnnouncementsModule} from "../announcements/announcements.module";
+import {GradesModule} from "../grades/grades.module";
+import {InstructorGradeController} from "./instructor-grade.controller";
 
 @Module({
     imports: [
@@ -20,6 +22,7 @@ import {AnnouncementsModule} from "../announcements/announcements.module";
         QuestionsModule,
         QuizSubmissionsModule,
         AnnouncementsModule,
+        GradesModule,
     ],
     controllers: [
         InstructorCourseController,
@@ -28,6 +31,7 @@ import {AnnouncementsModule} from "../announcements/announcements.module";
         InstructorQuestionsController,
         InstructorQuizSubmissionController,
         InstructorAnnouncementController,
+        InstructorGradeController,
     ]
 })
 export class InstructorModule {

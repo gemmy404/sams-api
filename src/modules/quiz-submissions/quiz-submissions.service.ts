@@ -21,6 +21,9 @@ import {UserRoles} from "../roles/enums/user-roles.enum";
 import {QuestionResponseDto} from "../questions/dto/question-response.dto";
 import {AnswerDetailsResponseDto} from "./dto/answer-details-response.dto";
 import {CorrectWrittenQuestionRequestDto} from "./dto/correct-written-question-request.dto";
+import {GradesRepository} from "../grades/grades.repository";
+import {Grade} from "../grades/schemas/grades.schema";
+import {Quiz} from "../quiz/schemas/quizzes.schema";
 
 @Injectable()
 export class QuizSubmissionsService {
@@ -29,6 +32,7 @@ export class QuizSubmissionsService {
         private readonly quizSubmissionsRepository: QuizSubmissionsRepository,
         private readonly quizzesRepository: QuizzesRepository,
         private readonly questionsRepository: QuestionsRepository,
+        private readonly gradesRepository: GradesRepository,
         private readonly quizSubmissionsMapper: QuizSubmissionsMapper,
         private readonly questionsMapper: QuestionsMapper,
     ) {
@@ -93,6 +97,17 @@ export class QuizSubmissionsService {
                 }
             }
         );
+
+        if (!containsWrittenQuestion) {
+            const grade: Grade = {
+                student: new Types.ObjectId(currentUser._id),
+                course: savedQuiz.course,
+                classworkId: savedQuiz.classworkId,
+                score: score,
+                maxScore: savedQuiz.totalScore,
+            };
+            await this.gradesRepository.createGrade(grade);
+        }
 
         const appResponse: AppResponseDto<null> = {
             status: HttpStatusText.SUCCESS,
@@ -198,6 +213,45 @@ export class QuizSubmissionsService {
             message: 'Question graded successfully',
             data: null,
         };
+
+        return appResponse;
+    }
+
+    async markQuizAsGraded(submissionId: Types.ObjectId): Promise<AppResponseDto<null>> {
+        const savedSubmission = await this.quizSubmissionsRepository.updateSubmission({
+                _id: submissionId
+            },
+            {
+                $set: {gradedAt: new Date()}
+            },
+            {new: true},
+            [{path: 'quiz', select: 'course classworkId totalScore'}]
+        );
+        if (!savedSubmission) {
+            throw new NotFoundException('Quiz submission not found');
+        }
+
+        const quiz = savedSubmission.quiz as unknown as Quiz;
+
+        await this.gradesRepository.updateGrade({
+                student: savedSubmission.student,
+                course: quiz.course,
+                classworkId: quiz.classworkId,
+            },
+            {
+                $set: {
+                    score: savedSubmission.totalScore,
+                    maxScore: quiz.totalScore,
+                }
+            },
+            {upsert: true, new: true},
+        );
+
+        const appResponse: AppResponseDto<null> = {
+            status: HttpStatusText.SUCCESS,
+            message: 'Quiz marked as graded successfully',
+            data: null,
+        }
 
         return appResponse;
     }

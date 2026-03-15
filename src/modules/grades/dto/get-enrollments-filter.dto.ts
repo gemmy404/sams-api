@@ -1,11 +1,11 @@
-import {IsEnum, IsNotEmpty, IsOptional, IsString, Min} from "class-validator";
+import {IsEnum, IsOptional, IsString, Min} from "class-validator";
 import {Type} from "class-transformer";
 import {ApiProperty} from "@nestjs/swagger";
 
-export class GetUsersFilterDto {
+export class GetEnrollmentsFilterDto {
     @ApiProperty({
         required: false,
-        description: 'Search by name, email or id'
+        description: 'Search by name, id'
     })
     @IsOptional()
     @IsString()
@@ -13,36 +13,22 @@ export class GetUsersFilterDto {
 
     @ApiProperty({
         required: false,
+        description: 'Sort by name, academicId, or any classworkId',
+        example: '65d7... (classworkId) or "name"',
+        default: 'name',
     })
     @IsOptional()
     @IsString()
-    roleId?: string;
-
-    @ApiProperty({
-        required: false,
-        enum: ['active', 'inactive'],
-    })
-    @IsOptional()
-    @IsEnum(['active', 'inactive'], {message: 'Status must be one of active, inactive'})
-    status?: string;
-
-    @ApiProperty({
-        required: false,
-        enum: ['name', 'academicEmail', 'academicId'],
-        default: 'createdAt',
-    })
-    @IsNotEmpty({message: 'Sort by is required'})
-    @IsString()
-    sortBy: string = 'createdAt';
+    sortBy: string = 'name';
 
     @ApiProperty({
         required: false,
         enum: ['asc', 'desc'],
-        default: 'desc',
+        default: 'asc',
     })
     @IsOptional()
     @IsEnum(['asc', 'desc'], {message: 'Sort Order must be one of asc, desc'})
-    sortOrder: string = 'desc';
+    sortOrder: 'asc' | 'desc' = 'asc';
 
     @ApiProperty({
         required: false,

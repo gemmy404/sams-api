@@ -8,6 +8,7 @@ import {HttpStatusText} from "../../common/enums/http-status-text.enum";
 import {CourseResponseDto} from "../courses/dto/course-response.dto";
 import {CoursesMapper} from "../courses/courses.mapper";
 import {Course} from "../courses/schemas/courses.schema";
+import {Types} from "mongoose";
 
 @Injectable()
 export class EnrollmentsService {
@@ -34,8 +35,8 @@ export class EnrollmentsService {
         }
 
         await this.enrollmentsRepository.create({
-            user: currentUser._id,
-            course: savedCourse._id.toString(),
+            user: new Types.ObjectId(currentUser._id),
+            course: savedCourse._id,
         });
 
         const appResponse: AppResponseDto<null> = {
@@ -49,7 +50,7 @@ export class EnrollmentsService {
 
     async findMyJoinedCourses(currentUser: CurrentUserDto): Promise<AppResponseDto<CourseResponseDto[]>> {
         const enrollments = await this.enrollmentsRepository.findAll({
-            user: currentUser._id
+            user: new Types.ObjectId(currentUser._id)
         }, 'enrolledAt');
 
         const appResponse: AppResponseDto<CourseResponseDto[]> = {

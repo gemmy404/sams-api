@@ -7,6 +7,7 @@ import {QuizSubmissionsRepository} from "./quiz-submissions.repository";
 import {QuizzesModule} from "../quiz/quizzes.module";
 import {QuestionsModule} from "../questions/questions.module";
 import {QuizSubmissionsMapper} from "./quiz-submissions.mapper";
+import {GradesModule} from "../grades/grades.module";
 
 @Module({
     imports: [
@@ -15,6 +16,7 @@ import {QuizSubmissionsMapper} from "./quiz-submissions.mapper";
         ]),
         forwardRef(() => QuizzesModule),
         QuestionsModule,
+        GradesModule,
     ],
     controllers: [QuizSubmissionsController],
     providers: [QuizSubmissionsRepository, QuizSubmissionsService, QuizSubmissionsMapper],

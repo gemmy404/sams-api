@@ -22,6 +22,7 @@ import {QuestionsModule} from "./modules/questions/questions.module";
 import { QuizSubmissionsModule } from './modules/quiz-submissions/quiz-submissions.module';
 import { AnnouncementsModule } from './modules/announcements/announcements.module';
 import { CommentsModule } from './modules/comments/comments.module';
+import { GradesModule } from './modules/grades/grades.module';
 
 @Module({
     imports: [
@@ -60,6 +61,7 @@ import { CommentsModule } from './modules/comments/comments.module';
         QuizSubmissionsModule,
         AnnouncementsModule,
         CommentsModule,
+        GradesModule,
     ],
     providers: [
         {
