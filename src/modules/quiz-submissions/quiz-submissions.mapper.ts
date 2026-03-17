@@ -10,7 +10,7 @@ import {QuestionType} from "../questions/enums/question-type.enum";
 @Injectable()
 export class QuizSubmissionsMapper {
 
-    toQuizSubmissionResponse(this: void, quizSubmission: QuizSubmission): QuizSubmissionResponseDto {
+    toQuizSubmissionResponse(this: void, quizSubmission: QuizSubmission, totalPoints: number): QuizSubmissionResponseDto {
         const student = quizSubmission.student as unknown as Users;
         return {
             _id: quizSubmission._id!.toString(),
@@ -18,6 +18,7 @@ export class QuizSubmissionsMapper {
             academicId: student.academicId,
             studentName: student.name,
             score: quizSubmission.totalScore,
+            totalPoints: totalPoints,
             submittedAt: quizSubmission.submittedAt.toLocaleString(),
             isGraded: !!quizSubmission.gradedAt,
         };

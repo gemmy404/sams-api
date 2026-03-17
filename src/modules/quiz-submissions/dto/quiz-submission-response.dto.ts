@@ -17,6 +17,9 @@ export class QuizSubmissionResponseDto {
     score: number;
 
     @ApiProperty()
+    totalPoints: number;
+
+    @ApiProperty()
     submittedAt: string;
 
     @ApiProperty()
