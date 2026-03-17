@@ -136,7 +136,8 @@ export class QuizSubmissionsService {
 
         const appResponse: AppResponseDto<QuizSubmissionResponseDto[]> = {
             status: HttpStatusText.SUCCESS,
-            data: submissions.map(this.quizSubmissionsMapper.toQuizSubmissionResponse),
+            data: submissions.map(sub =>
+                this.quizSubmissionsMapper.toQuizSubmissionResponse(sub, savedQuiz.totalScore)),
             pagination: constructPagination(totalElements, page, size),
         }
 

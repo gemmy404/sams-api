@@ -116,4 +116,32 @@ export class UsersService {
 
         return appResponse;
     }
+
+    async deleteProfilePic(currentUser: CurrentUserDto): Promise<AppResponseDto<UserResponseDto>> {
+        const savedUser = await this.usersRepository.findUser({
+            _id: currentUser._id
+        });
+
+        if (savedUser && savedUser.profilePic) {
+            await this.s3Service.deleteFile(savedUser.profilePic);
+        }
+
+        const updatedUser = await this.usersRepository.updateUser(
+            {
+                _id: currentUser._id
+            },
+            {
+                $unset: {
+                    profilePic: ''
+                }
+            }
+        );
+
+        const appResponse: AppResponseDto<UserResponseDto> = {
+            status: HttpStatusText.SUCCESS,
+            data: this.usersMapper.toUserResponse(updatedUser!)
+        };
+
+        return appResponse;
+    }
 }
