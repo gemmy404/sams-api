@@ -1,4 +1,4 @@
-import {Body, Controller, Get, Patch, Post, UseGuards} from '@nestjs/common';
+import {Body, Controller, Delete, Get, Patch, Post, UseGuards} from '@nestjs/common';
 import {UsersService} from './users.service';
 import {CurrentUser} from "../../common/decorators/current-user.decorator";
 import {CurrentUserDto} from "../../common/dto/current-user.dto";
@@ -50,5 +50,12 @@ export class UsersController {
         @CurrentUser() currentUser: CurrentUserDto,
     ): Promise<AppResponseDto<UserResponseDto>> {
         return this.usersService.saveProfilePic(saveProfilePicRequest, currentUser);
+    }
+
+    @Delete('profile-picture')
+    deleteProfilePic(
+        @CurrentUser() currentUser: CurrentUserDto
+    ): Promise<AppResponseDto<UserResponseDto>> {
+        return this.usersService.deleteProfilePic(currentUser);
     }
 }
