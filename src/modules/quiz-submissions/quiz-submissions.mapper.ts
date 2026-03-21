@@ -31,20 +31,18 @@ export class QuizSubmissionsMapper {
     ): AnswerDetailsResponseDto {
         let selectedOptionId: string | null | undefined = undefined;
         let writtenAnswer: string | null | undefined = undefined;
-        let isCorrect: boolean | null;
         if (questionResponse.questionType === QuestionType.WRITTEN) {
             writtenAnswer = answer.writtenAnswer || null;
-            isCorrect = writtenAnswer === null ? false : null;
         } else {
             selectedOptionId = answer.selectedOption?.toString() || null;
-            isCorrect = !selectedOptionId ? false : answer.isCorrect!;
         }
         return {
             ...questionResponse,
             selectedOptionId: selectedOptionId,
             writtenAnswer: writtenAnswer,
             earnedPoints: answer.earnedPoints,
-            isCorrect: isCorrect,
+            isCorrect: answer.isCorrect,
+            isGraded: answer.isGraded,
         }
     }
 }

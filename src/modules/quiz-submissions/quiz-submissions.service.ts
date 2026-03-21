@@ -132,7 +132,10 @@ export class QuizSubmissionsService {
         const skip: number = (page - 1) * size;
 
         const {submissions, totalElements} = await this.quizSubmissionsRepository
-            .findAll({quiz: quizId}, size, skip);
+            .findAll({
+                quiz: quizId,
+                status: SubmissionStatus.SUBMITTED,
+            }, size, skip);
 
         const appResponse: AppResponseDto<QuizSubmissionResponseDto[]> = {
             status: HttpStatusText.SUCCESS,
@@ -192,7 +195,7 @@ export class QuizSubmissionsService {
 
         const pointsDifference = earnedPoints - oldPoints;
 
-        await this.quizSubmissionsRepository.updateSubmission({
+        const updatedSubmission = await this.quizSubmissionsRepository.updateSubmission({
                 _id: submissionId,
                 'answers.question': questionId,
             }, {
@@ -200,14 +203,23 @@ export class QuizSubmissionsService {
                 $set: {
                     'answers.$[elem].isCorrect': earnedPoints > 0,
                     'answers.$[elem].earnedPoints': earnedPoints,
+                    'answers.$[elem].isGraded': true,
                 },
             },
             {
                 arrayFilters: [{
                     'elem.question': questionId
                 }],
-                new: true
+                new: true,
             });
+
+        const gradedQuestions: number = updatedSubmission!.answers
+            .filter(answer => answer.isGraded)
+            .length;
+
+        if (gradedQuestions === updatedSubmission!.answers.length) {
+            await this.markQuizAsGraded(submissionId);
+        }
 
         const appResponse: AppResponseDto<null> = {
             status: HttpStatusText.SUCCESS,
