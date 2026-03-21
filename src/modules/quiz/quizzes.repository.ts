@@ -16,7 +16,9 @@ export class QuizzesRepository {
     }
 
     async findAll(query: QueryFilter<Quiz>) {
-        return this.quizzesModel.find(query);
+        return this.quizzesModel
+            .find(query)
+            .sort({createdAt: -1});
     }
 
     async findQuiz(query: QueryFilter<Quiz>) {

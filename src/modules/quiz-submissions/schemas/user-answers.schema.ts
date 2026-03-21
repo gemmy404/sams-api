@@ -38,8 +38,16 @@ export class UserAnswer {
     @Prop({
         type: Boolean,
         required: false,
+        default: null,
     })
-    isCorrect?: boolean;
+    isCorrect?: boolean | null;
+
+    @Prop({
+        type: Boolean,
+        required: true,
+        default: false,
+    })
+    isGraded: boolean;
 }
 
 export const UserAnswerSchema = SchemaFactory.createForClass(UserAnswer);

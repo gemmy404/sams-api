@@ -13,4 +13,7 @@ export class AnswerDetailsResponseDto extends QuestionResponseDto {
 
     @ApiProperty({required: false})
     isCorrect?: boolean | null;
+
+    @ApiProperty()
+    isGraded: boolean;
 }

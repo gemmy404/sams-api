@@ -2,6 +2,7 @@ import {IsDate, IsInt, IsMongoId, IsNotEmpty, IsOptional, Min, MinDate} from "cl
 import {ApiProperty} from "@nestjs/swagger";
 import {Type} from "class-transformer";
 import {Types} from "mongoose";
+import {IsFutureDate} from "../../../common/decorators/is-future-date.decorator";
 
 export class CreateQuizRequestDto {
     @ApiProperty()
@@ -22,7 +23,7 @@ export class CreateQuizRequestDto {
     @IsNotEmpty({message: 'Start time is required'})
     @Type(() => Date)
     @IsDate({message: 'Start time must be a date'})
-    @MinDate(new Date(), {message: 'Start time cannot be in the past'})
+    @IsFutureDate({message: 'Start time cannot be in the past'})
     startTime: Date;
 
     @ApiProperty()
