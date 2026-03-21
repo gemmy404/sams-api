@@ -56,12 +56,21 @@ export class QuizSubmissionsUtil {
             const answer: AnswerDto | undefined = answersMap.get(qid);
             const correctness = questionCorrectnessMap.get(qid);
 
+            let isGraded: boolean = false;
+            const isWritten = question.questionType === QuestionType.WRITTEN;
+            const hasNoAnswer = !answer?.writtenAnswer;
+
+            if (!isWritten || (isWritten && hasNoAnswer)) {
+                isGraded = true;
+            }
+
             return {
                 question: question._id!,
                 selectedOption: answer?.selectedOptionId ? new Types.ObjectId(answer.selectedOptionId) : undefined,
                 writtenAnswer: answer?.writtenAnswer || undefined,
-                isCorrect: correctness?.isCorrect,
+                isCorrect: (isWritten && hasNoAnswer) ? false : correctness?.isCorrect,
                 earnedPoints: correctness?.earnedPoints || 0,
+                isGraded: isGraded
             };
         });
     }
