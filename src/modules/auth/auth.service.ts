@@ -59,10 +59,15 @@ export class AuthService {
                 {academicId: registerDto.academicId},
             ]
         });
-        if (user) {
+
+        const cachedUser = await this.cacheService
+            .findItemByCacheKey(`register:${registerDto.academicEmail}`);
+
+        if (user || cachedUser) {
             throw new BadRequestException('It looks like you\'re already registered.' +
                 ' The email or Academic ID you entered is already in use');
         }
+
 
         if (registerDto.password !== registerDto.confirmPassword) {
             throw new BadRequestException('Passwords do not match');
