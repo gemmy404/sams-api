@@ -13,9 +13,9 @@ import {MaterialResponseDto} from "./dto/material-response.dto";
 import {MaterialsMapper} from "./materials.mapper";
 import {EnrollmentsRepository} from "../enrollments/enrollments.repository";
 import {CurrentUserDto} from "../../common/dto/current-user.dto";
-import {MaterialItem} from "./schemas/material-items.schema";
 import {UpdateMaterialRequestDto} from "./dto/update-material-request.dto";
 import {AddMaterialItemsRequestDto} from "./dto/add-material-items-request.dto";
+import {MediaItem} from "../../common/schemas/media-item.schema";
 
 @Injectable()
 export class MaterialsService {
@@ -138,8 +138,8 @@ export class MaterialsService {
             _id: materialId
         });
 
-        const itemToDelete: MaterialItem | undefined = savedMaterial!.materialItems.find(
-            (item: MaterialItem) => item.contentReference === itemKey);
+        const itemToDelete: MediaItem | undefined = savedMaterial!.materialItems.find(
+            (item: MediaItem) => item.contentReference === itemKey);
         if (!itemToDelete) {
             throw new NotFoundException('File not found in this material');
         }
