@@ -1,6 +1,6 @@
 import {ArrayMaxSize, IsArray, IsNotEmpty, IsOptional, MaxLength, ValidateNested} from "class-validator";
 import {ApiProperty} from "@nestjs/swagger";
-import {MaterialItemsRequestDto} from "./material-items-request.dto";
+import {MediaItemsRequestDto} from "./media-items-request.dto";
 import {Type} from "class-transformer";
 
 export class AddMaterialRequestDto {
@@ -14,11 +14,11 @@ export class AddMaterialRequestDto {
     @MaxLength(100, {message: 'Description must not exceed 100 characters'})
     description: string;
 
-    @ApiProperty({type: [MaterialItemsRequestDto]})
+    @ApiProperty({type: [MediaItemsRequestDto]})
     @IsOptional()
     @IsArray()
     @ArrayMaxSize(10, {message: 'You cannot upload more than 10 files at once'})
     @ValidateNested()
-    @Type(() => MaterialItemsRequestDto)
-    materialItems: MaterialItemsRequestDto[];
+    @Type(() => MediaItemsRequestDto)
+    materialItems: MediaItemsRequestDto[];
 }
