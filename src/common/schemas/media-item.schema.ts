@@ -1,9 +1,9 @@
-import {Prop, Schema, SchemaFactory} from "@nestjs/mongoose";
-import {Types} from "mongoose";
-import {FileContentType} from "../../../common/enums/file-content-type.enum";
+import {Prop, Schema, SchemaFactory} from '@nestjs/mongoose';
+import {Types} from 'mongoose';
+import {FileContentType} from "../enums/file-content-type.enum";
 
 @Schema({timestamps: true})
-export class MaterialItem {
+export class MediaItem {
     _id?: Types.ObjectId;
 
     @Prop({
@@ -14,6 +14,7 @@ export class MaterialItem {
     originalFileName: string;
 
     @Prop({
+        type: String,
         enum: FileContentType,
         required: true,
         lowercase: true,
@@ -28,4 +29,4 @@ export class MaterialItem {
     contentReference: string;
 }
 
-export const MaterialItemSchema = SchemaFactory.createForClass(MaterialItem);
+export const MediaItemSchema = SchemaFactory.createForClass(MediaItem);

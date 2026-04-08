@@ -1,7 +1,7 @@
 import {Prop, Schema, SchemaFactory} from "@nestjs/mongoose";
 import {Types} from "mongoose";
 import {Course} from "../../courses/schemas/courses.schema";
-import {MaterialItem, MaterialItemSchema} from "./material-items.schema";
+import {MediaItem, MediaItemSchema} from "../../../common/schemas/media-item.schema";
 
 @Schema({timestamps: true})
 export class Material {
@@ -29,11 +29,11 @@ export class Material {
     course: Types.ObjectId;
 
     @Prop({
-        type: [MaterialItemSchema],
+        type: [MediaItemSchema],
         required: false,
         default: [],
     })
-    materialItems: MaterialItem[];
+    materialItems: MediaItem[];
 }
 
 export const MaterialSchema = SchemaFactory.createForClass(Material);

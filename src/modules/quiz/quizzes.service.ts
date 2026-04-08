@@ -40,10 +40,20 @@ export class QuizzesService {
         courseId: Types.ObjectId,
         createQuizDto: CreateQuizRequestDto
     ): Promise<AppResponseDto<QuizResponseDto>> {
-        const {startTime, duration} = createQuizDto;
-        const endTime = new Date(startTime.getTime() + duration * 60 * 1000);
+        const savedCourse = await this.coursesRepository.findCourse({
+            _id: courseId
+        });
+        const savedClasswork = savedCourse!.classwork
+            .find(cw => cw._id!.toString() === createQuizDto.classworkId.toString());
+        if (!savedClasswork) {
+            throw new NotFoundException('Classwork not found');
+        }
 
-        const updatedRequiredClasswork = await this.coursesRepository.updateCourse(
+        if (savedClasswork.isUsed) {
+            throw new BadRequestException('This classwork is already used in another quiz')
+        }
+
+        await this.coursesRepository.updateCourse(
             {
                 _id: courseId,
                 "classwork._id": createQuizDto.classworkId,
@@ -57,9 +67,8 @@ export class QuizzesService {
             }
         );
 
-        if (!updatedRequiredClasswork) {
-            throw new NotFoundException('Classwork not found');
-        }
+        const {startTime, duration} = createQuizDto;
+        const endTime = new Date(startTime.getTime() + duration * 60 * 1000);
 
         createQuizDto.classworkId = new Types.ObjectId(createQuizDto.classworkId);
         const createdCourse = await this.quizzesRepository

@@ -2,7 +2,7 @@ import {IsEnum, IsNotEmpty, MaxLength} from "class-validator";
 import {ApiProperty} from "@nestjs/swagger";
 import {FileContentType} from "../../../common/enums/file-content-type.enum";
 
-export class MaterialItemsRequestDto {
+export class MediaItemsRequestDto {
     @ApiProperty()
     @IsNotEmpty({message: 'Original file name is required'})
     @MaxLength(50, {message: 'File name must not exceed 50 characters'})

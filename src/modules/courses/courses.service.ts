@@ -14,6 +14,10 @@ import {EnrollmentsRepository} from "../enrollments/enrollments.repository";
 import {UpdateCourseRequestDto} from "./dto/update-course-request.dto";
 import {CourseDetailsResponseDto} from "./dto/course-details-response.dto";
 import {CourseClassworkDto} from "./dto/course-classwork.dto";
+import {UploadMediaItemRequestDto} from "../../common/dto/upload-media-item-request.dto";
+import {CreateUploadUrlResponseDto} from "../s3/dto/create-upload-url-response.dto";
+import {FileMetadataDto} from "../../common/dto/file-metadata.dto";
+import {S3Service} from "../s3/s3.service";
 
 @Injectable()
 export class CoursesService {
@@ -22,6 +26,7 @@ export class CoursesService {
         private readonly coursesRepository: CoursesRepository,
         private readonly enrollmentsRepository: EnrollmentsRepository,
         private readonly coursesMapper: CoursesMapper,
+        private readonly s3Service: S3Service,
     ) {
     }
 
@@ -50,6 +55,37 @@ export class CoursesService {
             status: HttpStatusText.SUCCESS,
             message: 'Course created successfully',
             data: null,
+        };
+
+        return appResponse;
+    }
+
+    async createUploadUrls(
+        courseId: Types.ObjectId,
+        uploadMediaRequest: UploadMediaItemRequestDto
+    ): Promise<AppResponseDto<CreateUploadUrlResponseDto[]>> {
+        const filesMetadata = uploadMediaRequest.filesMetadata;
+        const context = uploadMediaRequest.context;
+
+        const savedCourse = await this.coursesRepository.findCourse({
+            _id: courseId,
+        });
+        if (!savedCourse) {
+            throw new NotFoundException('Course not found');
+        }
+
+        const res = await Promise.all(filesMetadata.map(async (file: FileMetadataDto) =>
+            await this.s3Service.generateUploadUrl(
+                file.originalFileName,
+                file.contentType,
+                `${context}/${courseId.toString()}`,
+                `${Date.now()}`,
+            )
+        ));
+
+        const appResponse: AppResponseDto<CreateUploadUrlResponseDto[]> = {
+            status: HttpStatusText.SUCCESS,
+            data: res
         };
 
         return appResponse;

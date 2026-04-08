@@ -1,5 +1,5 @@
 import {ApiProperty} from "@nestjs/swagger";
-import {MaterialItemsResponseDto} from "./material-items-response.dto";
+import {MediaItemsResponseDto} from "./media-items-response.dto";
 import {ValidateNested} from "class-validator";
 
 export class MaterialResponseDto {
@@ -13,8 +13,8 @@ export class MaterialResponseDto {
     description: string;
 
     @ApiProperty({
-        type: [MaterialItemsResponseDto],
+        type: [MediaItemsResponseDto],
     })
     @ValidateNested()
-    materialItems: MaterialItemsResponseDto[];
+    materialItems: MediaItemsResponseDto[];
 }
