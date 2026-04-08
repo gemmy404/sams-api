@@ -2,13 +2,13 @@ import {Injectable} from "@nestjs/common";
 import {MaterialResponseDto} from "./dto/material-response.dto";
 import {Material} from "./schemas/materials.schema";
 import {getStaticUrl} from "../../common/utils/get-static-url.util";
-import {MaterialItemsResponseDto} from "./dto/material-items-response.dto";
+import {MediaItemsResponseDto} from "./dto/media-items-response.dto";
 
 @Injectable()
 export class MaterialsMapper {
 
     toMaterialResponse(this: void, material: Material): MaterialResponseDto {
-        let materialItems: MaterialItemsResponseDto[] = [];
+        let materialItems: MediaItemsResponseDto[] = [];
         if (material.materialItems)
             materialItems = material.materialItems.map(item => ({
                 originalFileName: item.originalFileName,

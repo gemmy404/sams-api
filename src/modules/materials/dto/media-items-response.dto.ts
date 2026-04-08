@@ -1,6 +1,6 @@
 import {ApiProperty} from "@nestjs/swagger";
 
-export class MaterialItemsResponseDto {
+export class MediaItemsResponseDto {
     @ApiProperty()
     originalFileName: string;
 
