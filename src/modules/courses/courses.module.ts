@@ -5,6 +5,7 @@ import {Course, CourseSchema} from "./schemas/courses.schema";
 import {CoursesRepository} from "./courses.repository";
 import {CoursesMapper} from "./courses.mapper";
 import {EnrollmentsModule} from "../enrollments/enrollments.module";
+import {S3Module} from "../s3/s3.module";
 
 @Module({
     imports: [
@@ -12,6 +13,7 @@ import {EnrollmentsModule} from "../enrollments/enrollments.module";
             {name: Course.name, schema: CourseSchema},
         ]),
         forwardRef(() => EnrollmentsModule),
+        S3Module,
     ],
     providers: [CoursesService, CoursesRepository, CoursesMapper],
     exports: [CoursesRepository, CoursesService, CoursesMapper],

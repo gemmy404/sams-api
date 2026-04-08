@@ -17,6 +17,8 @@ import {ClassworkResponseDto} from "../courses/dto/classwork-response.dto";
 import {CourseDetailsResponseDto} from "../courses/dto/course-details-response.dto";
 import {UpdateCourseRequestDto} from "../courses/dto/update-course-request.dto";
 import {CourseClassworkDto} from "../courses/dto/course-classwork.dto";
+import {CreateUploadUrlResponseDto} from "../s3/dto/create-upload-url-response.dto";
+import {UploadMediaItemRequestDto} from "../../common/dto/upload-media-item-request.dto";
 
 @ApiBearerAuth('access-token')
 @Controller('api/v1/instructor/courses')
@@ -33,6 +35,16 @@ export class InstructorCourseController {
         @CurrentUser() currentUser: CurrentUserDto,
     ): Promise<AppResponseDto<null>> {
         return this.coursesService.createCourse(createCourseRequest, currentUser);
+    }
+
+    @Post(':courseId/context/presigned-urls')
+    @UseGuards(IsCourseOwnerGuard)
+    @ApiResponse({type: [CreateUploadUrlResponseDto]})
+    createUploadUrls(
+        @Param('courseId', ParseObjectIdPipe) courseId: Types.ObjectId,
+        @Body() uploadItemRequest: UploadMediaItemRequestDto
+    ): Promise<AppResponseDto<CreateUploadUrlResponseDto[]>> {
+        return this.coursesService.createUploadUrls(courseId, uploadItemRequest);
     }
 
     @Get('me')
