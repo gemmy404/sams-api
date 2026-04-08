@@ -1,6 +1,6 @@
 import {IsEnum, IsInt, IsNotEmpty, Max, MaxLength, Min} from "class-validator";
 import {ApiProperty} from "@nestjs/swagger";
-import {FileContentType} from "../../../common/enums/file-content-type.enum";
+import {FileContentType} from "../enums/file-content-type.enum";
 
 export class FileMetadataDto {
     @ApiProperty()
