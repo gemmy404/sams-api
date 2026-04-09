@@ -24,5 +24,13 @@ export class AssignmentsController {
         return this.assignmentsService.findAllAssignments(courseId, currentUser);
     }
 
+    @Get('assignments/:assignmentId')
+    @ApiResponse({type: AssignmentResponseDto})
+    getAssignmentDetails(
+        @Param('assignmentId', ParseObjectIdPipe) assignmentId: Types.ObjectId,
+        @CurrentUser() currentUser: CurrentUserDto
+    ): Promise<AppResponseDto<AssignmentResponseDto>> {
+        return this.assignmentsService.findAssignmentDetails(assignmentId, currentUser);
+    }
 
 }

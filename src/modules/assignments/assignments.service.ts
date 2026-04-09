@@ -10,6 +10,7 @@ import {AssignmentResponseDto} from "./dto/assignment-response.dto";
 import {AssignmentsMapper} from "./assignments.mapper";
 import {CurrentUserDto} from "../../common/dto/current-user.dto";
 import {MaterialsService} from "../materials/materials.service";
+import {S3Service} from "../s3/s3.service";
 
 @Injectable()
 export class AssignmentsService {
@@ -19,6 +20,7 @@ export class AssignmentsService {
         private readonly assignmentsMapper: AssignmentsMapper,
         private readonly coursesRepository: CoursesRepository,
         private readonly materialsService: MaterialsService,
+        private readonly s3Service: S3Service,
     ) {
     }
 
@@ -86,5 +88,62 @@ export class AssignmentsService {
 
         return appResponse;
     }
+
+    async findAssignmentDetails(
+        assignmentId: Types.ObjectId,
+        currentUser: CurrentUserDto
+    ): Promise<AppResponseDto<AssignmentResponseDto>> {
+        const savedAssignment = await this.assignmentsRepository.findOne({
+            _id: assignmentId,
+        });
+        if (!savedAssignment) {
+            throw new NotFoundException('Assignment not found');
+        }
+
+        await this.materialsService.authorizeCourseAccess(savedAssignment.course.toString(), currentUser);
+
+        const appResponse: AppResponseDto<AssignmentResponseDto> = {
+            status: HttpStatusText.SUCCESS,
+            data: this.assignmentsMapper.toAssignmentResponse(savedAssignment),
+        };
+
+        return appResponse;
+    }
+
+    async deleteAssignment(assignmentId: Types.ObjectId): Promise<AppResponseDto<null>> {
+        const deletedAssignment = await this.assignmentsRepository.deleteAndReturn({
+            _id: assignmentId,
+        });
+
+        await this.coursesRepository.updateCourse(
+            {
+                _id: deletedAssignment!.course,
+                "classwork._id": deletedAssignment!.classworkId,
+            },
+            {
+                $set: {"classwork.$[elem].isUsed": false}
+            },
+            {
+                arrayFilters: [{"elem._id": deletedAssignment!.classworkId}]
+            }
+        );
+
+        // remain delete assignment submissions
+
+        const keys: { Key: string }[] = deletedAssignment!.assignmentItems.map(item => (
+            {Key: item.contentReference}
+        ));
+        if (keys.length > 0)
+            await this.s3Service.deleteMultipleFiles(keys);
+
+        const appResponse: AppResponseDto<null> = {
+            status: HttpStatusText.SUCCESS,
+            message: `Assignment deleted successfully, and classwork unlocked`,
+            data: null,
+        };
+
+        return appResponse;
+    }
+
 
 }

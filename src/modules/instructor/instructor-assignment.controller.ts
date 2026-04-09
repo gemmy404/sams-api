@@ -1,4 +1,4 @@
-import {Body, Controller, Param, Post, UseGuards} from '@nestjs/common';
+import {Body, Controller, Delete, Param, Post, UseGuards} from '@nestjs/common';
 import {JwtAuthGuard} from "../auth/guards/jwt-auth.guard";
 import {AppResponseDto} from "../../common/dto/app-response.dto";
 import {Roles} from "../../common/decorators/roles.decorator";
@@ -12,6 +12,7 @@ import {MaterialResponseDto} from "../materials/dto/material-response.dto";
 import {AssignmentsService} from "../assignments/assignments.service";
 import {AddAssignmentRequestDto} from "../assignments/dto/add-assignment-request.dto";
 import {AssignmentResponseDto} from "../assignments/dto/assignment-response.dto";
+import {IsAssignmentOwnerGuard} from "../assignments/guards/is-assignment-owner.guard";
 
 @ApiBearerAuth('access-token')
 @Controller('api/v1/instructor')
@@ -30,6 +31,14 @@ export class InstructorAssignmentController {
         @Body() addAssignmentRequest: AddAssignmentRequestDto
     ): Promise<AppResponseDto<AssignmentResponseDto>> {
         return this.assignmentsService.createAssignment(courseId, addAssignmentRequest);
+    }
+
+    @Delete('assignments/:assignmentId')
+    @UseGuards(IsAssignmentOwnerGuard)
+    deleteAssignment(
+        @Param('assignmentId', ParseObjectIdPipe) assignmentId: Types.ObjectId
+    ): Promise<AppResponseDto<null>> {
+        return this.assignmentsService.deleteAssignment(assignmentId);
     }
 
 
