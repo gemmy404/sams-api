@@ -1,7 +1,7 @@
 import {Injectable} from '@nestjs/common';
 import {InjectModel} from "@nestjs/mongoose";
 import {Assignment} from "./schemas/assignments.schema";
-import {Model, QueryFilter} from "mongoose";
+import {Model, QueryFilter, UpdateQuery} from "mongoose";
 
 @Injectable()
 export class AssignmentsRepository {
@@ -34,6 +34,10 @@ export class AssignmentsRepository {
                     select: '_id'
                 }
             });
+    }
+
+    async updateAssignment(query: QueryFilter<Assignment>, updatedVal: UpdateQuery<Assignment>) {
+        return this.assignmentsModel.findOneAndUpdate(query, updatedVal, {new: true});
     }
 
     async deleteAndReturn(query: QueryFilter<Assignment>) {

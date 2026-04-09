@@ -11,6 +11,8 @@ import {AssignmentsMapper} from "./assignments.mapper";
 import {CurrentUserDto} from "../../common/dto/current-user.dto";
 import {MaterialsService} from "../materials/materials.service";
 import {S3Service} from "../s3/s3.service";
+import {AddAssignmentItemsRequestDto} from "./dto/add-assignment-items-request.dto";
+import {MediaItem} from "../../common/schemas/media-item.schema";
 
 @Injectable()
 export class AssignmentsService {
@@ -145,5 +147,56 @@ export class AssignmentsService {
         return appResponse;
     }
 
+    async addAssignmentItems(
+        assignmentId: Types.ObjectId,
+        addAssignmentItemsRequest: AddAssignmentItemsRequestDto
+    ): Promise<AppResponseDto<AssignmentResponseDto>> {
+        const updatedAssignment = await this.assignmentsRepository
+            .updateAssignment({_id: assignmentId}, {
+                $push: {
+                    assignmentItems: {$each: addAssignmentItemsRequest.assignmentItems}
+                }
+            });
+
+        const appResponse: AppResponseDto<AssignmentResponseDto> = {
+            status: HttpStatusText.SUCCESS,
+            data: this.assignmentsMapper.toAssignmentResponse(updatedAssignment!)
+        };
+
+        return appResponse;
+    }
+
+    async deleteAssignmentItems(
+        assignmentId: Types.ObjectId,
+        itemKey: string
+    ): Promise<AppResponseDto<AssignmentResponseDto>> {
+        const savedAssignment = await this.assignmentsRepository.findOne({
+            _id: assignmentId
+        });
+
+        const itemToDelete: MediaItem | undefined = savedAssignment!.assignmentItems.find(
+            (item: MediaItem) => item.contentReference === itemKey
+        );
+        if (!itemToDelete) {
+            throw new NotFoundException('File not found in this assignment');
+        }
+
+        const updatedAssignment = await this.assignmentsRepository
+            .updateAssignment({_id: assignmentId}, {
+                $pull: {
+                    assignmentItems: {
+                        contentReference: itemKey
+                    }
+                }
+            });
+        await this.s3Service.deleteFile(itemKey);
+
+        const appResponse: AppResponseDto<AssignmentResponseDto> = {
+            status: HttpStatusText.SUCCESS,
+            data: this.assignmentsMapper.toAssignmentResponse(updatedAssignment!)
+        };
+
+        return appResponse;
+    }
 
 }

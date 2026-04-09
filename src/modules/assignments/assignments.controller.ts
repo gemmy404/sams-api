@@ -7,8 +7,9 @@ import {ParseObjectIdPipe} from "@nestjs/mongoose";
 import {JwtAuthGuard} from "../auth/guards/jwt-auth.guard";
 import {CurrentUser} from "../../common/decorators/current-user.decorator";
 import {CurrentUserDto} from "../../common/dto/current-user.dto";
-import {ApiResponse} from "@nestjs/swagger";
+import {ApiBearerAuth, ApiResponse} from "@nestjs/swagger";
 
+@ApiBearerAuth('access-token')
 @Controller('api/v1')
 @UseGuards(JwtAuthGuard)
 export class AssignmentsController {
