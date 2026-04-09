@@ -69,7 +69,7 @@ export class MaterialsService {
         const updatedMaterial = await this.materialsRepository
             .updateMaterial({_id: materialId}, {
                 $push: {
-                    materialItems: addMaterialItemsRequest.materialItems
+                    materialItems: {$each: addMaterialItemsRequest.materialItems}
                 }
             });
 
