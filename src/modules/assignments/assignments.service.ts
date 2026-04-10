@@ -38,7 +38,7 @@ export class AssignmentsService {
         }
 
         const savedClasswork = savedCourse.classwork
-            .find(cw => cw._id!.toString() === addAssignmentRequest.classworkId.toString());
+            .find(cw => cw._id!.equals(addAssignmentRequest.classworkId));
         if (!savedClasswork) {
             throw new NotFoundException('Classwork not found');
         }
@@ -68,7 +68,7 @@ export class AssignmentsService {
 
         const appResponse: AppResponseDto<AssignmentResponseDto> = {
             status: HttpStatusText.SUCCESS,
-            data: this.assignmentsMapper.toAssignmentResponse(createdAssignment),
+            data: this.assignmentsMapper.toAssignmentResponse(createdAssignment, savedClasswork.points),
         };
 
         return appResponse;
@@ -81,7 +81,9 @@ export class AssignmentsService {
         await this.materialsService.authorizeCourseAccess(courseId.toString(), currentUser);
 
         const assignments = await this.assignmentsRepository
-            .findAll({course: courseId,}, {assignmentItems: false});
+            .findAll({course: courseId,}, {assignmentItems: false},
+                [{path: 'course', select: 'classwork'}]
+            );
 
         const appResponse: AppResponseDto<AssignmentResponseDto[]> = {
             status: HttpStatusText.SUCCESS,
@@ -96,13 +98,15 @@ export class AssignmentsService {
         currentUser: CurrentUserDto
     ): Promise<AppResponseDto<AssignmentResponseDto>> {
         const savedAssignment = await this.assignmentsRepository.findOne({
-            _id: assignmentId,
-        });
+                _id: assignmentId,
+            },
+            [{path: 'course', select: 'classwork'}]
+        );
         if (!savedAssignment) {
             throw new NotFoundException('Assignment not found');
         }
 
-        await this.materialsService.authorizeCourseAccess(savedAssignment.course.toString(), currentUser);
+        await this.materialsService.authorizeCourseAccess(savedAssignment.course._id.toString(), currentUser);
 
         const appResponse: AppResponseDto<AssignmentResponseDto> = {
             status: HttpStatusText.SUCCESS,
@@ -153,14 +157,16 @@ export class AssignmentsService {
     ): Promise<AppResponseDto<AssignmentResponseDto>> {
         const updatedAssignment = await this.assignmentsRepository
             .updateAssignment({_id: assignmentId}, {
-                $push: {
-                    assignmentItems: {$each: addAssignmentItemsRequest.assignmentItems}
-                }
-            });
+                    $push: {
+                        assignmentItems: {$each: addAssignmentItemsRequest.assignmentItems}
+                    }
+                },
+                [{path: 'course', select: 'classwork'}]
+            );
 
         const appResponse: AppResponseDto<AssignmentResponseDto> = {
             status: HttpStatusText.SUCCESS,
-            data: this.assignmentsMapper.toAssignmentResponse(updatedAssignment!)
+            data: this.assignmentsMapper.toAssignmentResponse(updatedAssignment!),
         };
 
         return appResponse;
@@ -183,17 +189,19 @@ export class AssignmentsService {
 
         const updatedAssignment = await this.assignmentsRepository
             .updateAssignment({_id: assignmentId}, {
-                $pull: {
-                    assignmentItems: {
-                        contentReference: itemKey
+                    $pull: {
+                        assignmentItems: {
+                            contentReference: itemKey
+                        }
                     }
-                }
-            });
+                },
+                [{path: 'course', select: 'classwork'}]
+            );
         await this.s3Service.deleteFile(itemKey);
 
         const appResponse: AppResponseDto<AssignmentResponseDto> = {
             status: HttpStatusText.SUCCESS,
-            data: this.assignmentsMapper.toAssignmentResponse(updatedAssignment!)
+            data: this.assignmentsMapper.toAssignmentResponse(updatedAssignment!),
         };
 
         return appResponse;

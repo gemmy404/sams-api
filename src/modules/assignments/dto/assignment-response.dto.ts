@@ -19,6 +19,9 @@ export class AssignmentResponseDto {
     @ApiProperty()
     dueDate: string;
 
+    @ApiProperty()
+    points: number;
+
     @ApiProperty({enum: AssignmentStatus})
     status: AssignmentStatus;
 
