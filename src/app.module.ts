@@ -19,10 +19,11 @@ import {MaterialsModule} from './modules/materials/materials.module';
 import {ValidationError} from "class-validator";
 import {QuizzesModule} from "./modules/quiz/quizzes.module";
 import {QuestionsModule} from "./modules/questions/questions.module";
-import { QuizSubmissionsModule } from './modules/quiz-submissions/quiz-submissions.module';
-import { AnnouncementsModule } from './modules/announcements/announcements.module';
-import { CommentsModule } from './modules/comments/comments.module';
-import { GradesModule } from './modules/grades/grades.module';
+import {QuizSubmissionsModule} from './modules/quiz-submissions/quiz-submissions.module';
+import {AnnouncementsModule} from './modules/announcements/announcements.module';
+import {CommentsModule} from './modules/comments/comments.module';
+import {GradesModule} from './modules/grades/grades.module';
+import {AssignmentsModule} from './modules/assignments/assignments.module';
 
 @Module({
     imports: [
@@ -62,6 +63,7 @@ import { GradesModule } from './modules/grades/grades.module';
         AnnouncementsModule,
         CommentsModule,
         GradesModule,
+        AssignmentsModule,
     ],
     providers: [
         {
