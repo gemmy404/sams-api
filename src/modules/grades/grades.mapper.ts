@@ -70,10 +70,12 @@ export class GradesMapper {
             const {actualScore, maxScore} = gradesMap.get(cw._id!.toString()) || {actualScore: null, maxScore: 1};
             const weight = cw.points;
             const weightedScore = actualScore ? (actualScore / maxScore) * weight : null;
+
             return {
                 classwork: cw.name,
-                score: actualScore ? Number(weightedScore!.toFixed(1)) : null,
+                score: (actualScore && cw.isVisible) ? Number(weightedScore!.toFixed(1)) : null,
                 maxScore: cw.points,
+                isVisible: cw.isVisible,
             }
         }) as unknown as MyGradeResponseDto;
     }

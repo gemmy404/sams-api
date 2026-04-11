@@ -74,7 +74,7 @@ export class GradesService {
 
         await this.materialsService.authorizeCourseAccess(courseId.toString(), currentUser);
 
-        const classworks = savedCourse.classwork.filter(cw => cw.isVisible);
+        const classworks = savedCourse.classwork;
 
         const savedGrades = await this.gradesRepository.findAll({
             course: courseId,

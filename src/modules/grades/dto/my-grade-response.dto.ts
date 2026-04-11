@@ -9,4 +9,7 @@ export class MyGradeResponseDto {
 
     @ApiProperty()
     maxScore: number;
+
+    @ApiProperty()
+    isVisible: boolean;
 }
