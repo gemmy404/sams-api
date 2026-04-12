@@ -37,6 +37,7 @@ export class AssignmentsMapper {
             status: assignment.dueDate.getTime() > Date.now() ? AssignmentStatus.ONGOING : AssignmentStatus.CLOSED,
             enablePlagiarismCheck: assignment.enablePlagiarismCheck,
             plagiarismThreshold: assignment.plagiarismThreshold || null,
+            classworkId: assignment.classworkId.toString(),
             assignmentItems: assignmentItems
         }
     }
