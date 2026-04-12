@@ -6,6 +6,7 @@ import {CoursesRepository} from "./courses.repository";
 import {CoursesMapper} from "./courses.mapper";
 import {EnrollmentsModule} from "../enrollments/enrollments.module";
 import {S3Module} from "../s3/s3.module";
+import { CoursesController } from './courses.controller';
 
 @Module({
     imports: [
@@ -16,6 +17,7 @@ import {S3Module} from "../s3/s3.module";
         S3Module,
     ],
     providers: [CoursesService, CoursesRepository, CoursesMapper],
+    controllers: [CoursesController],
     exports: [CoursesRepository, CoursesService, CoursesMapper],
 })
 export class CoursesModule {
