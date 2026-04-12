@@ -1,4 +1,4 @@
 export enum AssignmentStatus {
-    AVAILABLE = 'available',
+    ONGOING = 'ongoing',
     CLOSED = 'closed',
 }
