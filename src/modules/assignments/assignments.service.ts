@@ -13,6 +13,13 @@ import {MaterialsService} from "../materials/materials.service";
 import {S3Service} from "../s3/s3.service";
 import {AddAssignmentItemsRequestDto} from "./dto/add-assignment-items-request.dto";
 import {MediaItem} from "../../common/schemas/media-item.schema";
+import {AssignmentMySubResponseDto} from "../assignment-submissions/dto/assignment-my-sub-response.dto";
+import {UserRoles} from "../roles/enums/user-roles.enum";
+import {AssignmentSubmissionsRepository} from "../assignment-submissions/assignment-submissions.repository";
+import {AssignmentSubmissionStatus} from "../assignment-submissions/enums/assignment-submission.status.enum";
+import {MediaItemsResponseDto} from "../materials/dto/media-items-response.dto";
+import {getStaticUrl} from "../../common/utils/get-static-url.util";
+import {AssignmentSubmission} from "../assignment-submissions/schemas/assignment-submissions.schema";
 
 @Injectable()
 export class AssignmentsService {
@@ -23,6 +30,7 @@ export class AssignmentsService {
         private readonly coursesRepository: CoursesRepository,
         private readonly materialsService: MaterialsService,
         private readonly s3Service: S3Service,
+        private readonly assignmentsSubmissionsRepository: AssignmentSubmissionsRepository,
     ) {
     }
 
@@ -85,9 +93,23 @@ export class AssignmentsService {
                 [{path: 'course', select: 'classwork'}]
             );
 
-        const appResponse: AppResponseDto<AssignmentResponseDto[]> = {
+        const isInstructor = (currentUser.roles as UserRoles[]).includes(UserRoles.INSTRUCTOR)
+        let appResponse: AppResponseDto<AssignmentResponseDto[]>;
+
+        if (isInstructor) {
+            appResponse = {
+                status: HttpStatusText.SUCCESS,
+                data: assignments.map(this.assignmentsMapper.toAssignmentResponse),
+            };
+            return appResponse;
+        }
+
+        const studentResponse: AssignmentResponseDto[] = await this
+            .mapAssignmentsWithStudentStatus(courseId, assignments, currentUser);
+
+        appResponse = {
             status: HttpStatusText.SUCCESS,
-            data: assignments.map(this.assignmentsMapper.toAssignmentResponse),
+            data: studentResponse,
         };
 
         return appResponse;
@@ -96,7 +118,7 @@ export class AssignmentsService {
     async findAssignmentDetails(
         assignmentId: Types.ObjectId,
         currentUser: CurrentUserDto
-    ): Promise<AppResponseDto<AssignmentResponseDto>> {
+    ): Promise<AppResponseDto<AssignmentResponseDto | AssignmentMySubResponseDto>> {
         const savedAssignment = await this.assignmentsRepository.findOne({
                 _id: assignmentId,
             },
@@ -108,9 +130,23 @@ export class AssignmentsService {
 
         await this.materialsService.authorizeCourseAccess(savedAssignment.course._id.toString(), currentUser);
 
-        const appResponse: AppResponseDto<AssignmentResponseDto> = {
+        const isInstructor = (currentUser.roles as UserRoles[]).includes(UserRoles.INSTRUCTOR)
+        let appResponse: AppResponseDto<AssignmentResponseDto | AssignmentMySubResponseDto>;
+
+        if (isInstructor) {
+            appResponse = {
+                status: HttpStatusText.SUCCESS,
+                data: this.assignmentsMapper.toAssignmentResponse(savedAssignment),
+            };
+            return appResponse;
+        }
+
+        const studentResponse = await this
+            .prepareStudentAssignmentView(assignmentId, savedAssignment, currentUser);
+
+        appResponse = {
             status: HttpStatusText.SUCCESS,
-            data: this.assignmentsMapper.toAssignmentResponse(savedAssignment),
+            data: studentResponse,
         };
 
         return appResponse;
@@ -134,7 +170,7 @@ export class AssignmentsService {
             }
         );
 
-        // remain delete assignment submissions
+        await this.assignmentsSubmissionsRepository.deleteSubmission({assignment: assignmentId});
 
         const keys: { Key: string }[] = deletedAssignment!.assignmentItems.map(item => (
             {Key: item.contentReference}
@@ -207,4 +243,74 @@ export class AssignmentsService {
         return appResponse;
     }
 
+    private async mapAssignmentsWithStudentStatus(
+        courseId: Types.ObjectId,
+        assignments: Assignment[],
+        currentUser: CurrentUserDto
+    ): Promise<AssignmentResponseDto[]> {
+        const savedSubmissions = await this.assignmentsSubmissionsRepository.findAll({
+            student: new Types.ObjectId(currentUser._id),
+            course: courseId,
+        });
+
+        const submissionsMap = new Map<string, AssignmentSubmission>(
+            savedSubmissions.map(sub => [sub.assignment.toString(), sub])
+        );
+        const studentResponse: AssignmentResponseDto[] = [];
+
+        assignments.forEach(assign => {
+            const assignResponse = this.assignmentsMapper.toAssignmentResponse(assign);
+
+            assignResponse.status = this
+                .calculateStudentStatus(assign.dueDate, submissionsMap.get(assign._id!.toString()));
+
+            studentResponse.push(assignResponse);
+        });
+
+        return studentResponse;
+    }
+
+    private async prepareStudentAssignmentView(
+        assignmentId: Types.ObjectId,
+        savedAssignment: Assignment,
+        currentUser: CurrentUserDto
+    ) {
+        const savedSubmission = await this.assignmentsSubmissionsRepository.findOne({
+            student: new Types.ObjectId(currentUser._id),
+            assignment: assignmentId,
+        });
+
+        const status: AssignmentSubmissionStatus = this
+            .calculateStudentStatus(savedAssignment.dueDate, savedSubmission);
+
+        let submittedItems: MediaItemsResponseDto[] = [];
+        if (savedSubmission && savedSubmission.submittedItems.length > 0) {
+            submittedItems = savedSubmission.submittedItems.map(item => ({
+                originalFileName: item.originalFileName,
+                key: item.contentReference,
+                displayUrl: getStaticUrl(item.contentReference)!
+            }));
+        }
+
+        const studentResponse = {
+            ...this.assignmentsMapper.toAssignmentResponse(savedAssignment),
+            status: status,
+            submissionId: savedSubmission ? savedSubmission._id.toString() : null,
+            submittedItems: submittedItems,
+        };
+
+        return studentResponse;
+    }
+
+    private calculateStudentStatus(
+        dueDate: Date,
+        submission?: AssignmentSubmission | null
+    ): AssignmentSubmissionStatus {
+        if (submission)
+            return AssignmentSubmissionStatus.HANDED_IN;
+
+        return dueDate.getTime() < Date.now()
+            ? AssignmentSubmissionStatus.MISSED
+            : AssignmentSubmissionStatus.ASSIGNED;
+    }
 }
