@@ -24,6 +24,7 @@ import {AnnouncementsModule} from './modules/announcements/announcements.module'
 import {CommentsModule} from './modules/comments/comments.module';
 import {GradesModule} from './modules/grades/grades.module';
 import {AssignmentsModule} from './modules/assignments/assignments.module';
+import {AssignmentSubmissionsModule} from './modules/assignment-submissions/assignment-submissions.module';
 
 @Module({
     imports: [
@@ -64,6 +65,7 @@ import {AssignmentsModule} from './modules/assignments/assignments.module';
         CommentsModule,
         GradesModule,
         AssignmentsModule,
+        AssignmentSubmissionsModule,
     ],
     providers: [
         {
