@@ -50,10 +50,16 @@ export class AssignmentSubmissionsRepository {
             .populate(populated);
     }
 
+    async updateManySubmissions(
+        query: QueryFilter<AssignmentSubmission>,
+        updatedVal: UpdateQuery<AssignmentSubmission>
+    ) {
+        return this.assignmentSubmissionsModel.updateMany(query, updatedVal);
+    }
+
     async deleteAndReturn(query: QueryFilter<AssignmentSubmission>) {
         return this.assignmentSubmissionsModel.findOneAndDelete(query);
     }
-
 
     async deleteSubmission(query: QueryFilter<AssignmentSubmission>) {
         return this.assignmentSubmissionsModel.deleteMany(query);

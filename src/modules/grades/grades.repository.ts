@@ -1,7 +1,7 @@
 import {Injectable} from '@nestjs/common';
 import {InjectModel} from "@nestjs/mongoose";
 import {Grade} from "./schemas/grades.schema";
-import {Model, PopulateOptions, QueryFilter, QueryOptions, UpdateQuery} from "mongoose";
+import {AnyBulkWriteOperation, Model, PopulateOptions, QueryFilter, QueryOptions, UpdateQuery} from "mongoose";
 
 @Injectable()
 export class GradesRepository {
@@ -11,6 +11,10 @@ export class GradesRepository {
 
     async createGrade(grade: Grade) {
         return this.gradesModel.create(grade);
+    }
+
+    async createManyGrades(grades: Array<AnyBulkWriteOperation<Grade>>) {
+        return this.gradesModel.bulkWrite(grades);
     }
 
     async findOne(query: QueryFilter<Grade>) {
