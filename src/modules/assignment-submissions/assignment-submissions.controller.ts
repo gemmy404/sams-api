@@ -24,7 +24,7 @@ export class AssignmentSubmissionsController {
         return this.assignmentSubmissionsService.submitAssignment(assignmentId, addAssignSubmissionRequest, currentUser);
     }
 
-    @Delete('submissions/:submissionId')
+    @Delete('assignment-submissions/:submissionId')
     unsubmitAssignment(
         @Param('submissionId', ParseObjectIdPipe) submissionId: Types.ObjectId,
         @CurrentUser() currentUser: CurrentUserDto

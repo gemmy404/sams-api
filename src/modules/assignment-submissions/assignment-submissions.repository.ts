@@ -15,10 +15,12 @@ export class AssignmentSubmissionsRepository {
 
     async findAll(
         query: QueryFilter<AssignmentSubmission>,
+        select: Record<string, boolean> = {},
         populated: PopulateOptions[] = []
     ) {
         return this.assignmentSubmissionsModel.find(query)
             .sort({createdAt: -1})
+            .select(select)
             .populate(populated);
     }
 
