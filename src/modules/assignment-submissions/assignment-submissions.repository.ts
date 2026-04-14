@@ -13,15 +13,27 @@ export class AssignmentSubmissionsRepository {
         return this.assignmentSubmissionsModel.create(submission);
     }
 
-    async findAll(
+    async findAll(query: QueryFilter<AssignmentSubmission>) {
+        return this.assignmentSubmissionsModel.find(query)
+            .sort({createdAt: -1});
+    }
+
+    async findAllPaginated(
         query: QueryFilter<AssignmentSubmission>,
         select: Record<string, boolean> = {},
-        populated: PopulateOptions[] = []
+        populated: PopulateOptions[] = [],
+        size: number, skip: number
     ) {
-        return this.assignmentSubmissionsModel.find(query)
-            .sort({createdAt: -1})
-            .select(select)
-            .populate(populated);
+        const [savedSubmissions, totalElements] = await Promise.all([
+            this.assignmentSubmissionsModel.find(query)
+                .sort({createdAt: -1})
+                .limit(size)
+                .skip(skip)
+                .select(select)
+                .populate(populated),
+            this.assignmentSubmissionsModel.countDocuments(query),
+        ]);
+        return {savedSubmissions, totalElements};
     }
 
     async findOne(query: QueryFilter<AssignmentSubmission>, populated: PopulateOptions[] = []) {
@@ -38,13 +50,23 @@ export class AssignmentSubmissionsRepository {
             .populate(populated);
     }
 
+    async updateManySubmissions(
+        query: QueryFilter<AssignmentSubmission>,
+        updatedVal: UpdateQuery<AssignmentSubmission>
+    ) {
+        return this.assignmentSubmissionsModel.updateMany(query, updatedVal);
+    }
+
     async deleteAndReturn(query: QueryFilter<AssignmentSubmission>) {
         return this.assignmentSubmissionsModel.findOneAndDelete(query);
     }
 
-
     async deleteSubmission(query: QueryFilter<AssignmentSubmission>) {
         return this.assignmentSubmissionsModel.deleteMany(query);
+    }
+
+    async countSubmissions(query: QueryFilter<AssignmentSubmission>) {
+        return this.assignmentSubmissionsModel.countDocuments(query);
     }
 
 }

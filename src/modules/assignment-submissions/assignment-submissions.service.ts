@@ -17,6 +17,10 @@ import {AssignmentSubmission} from "./schemas/assignment-submissions.schema";
 import {GradedSubmissionRequestDto} from "./dto/graded-submission-request.dto";
 import {SubmissionActionStatus} from "./enums/submission-action-status.enum";
 import {Grade} from "../grades/schemas/grades.schema";
+import {PaginationQueryDto} from "../../common/dto/pagination-query.dto";
+import {constructPagination} from "../../common/utils/pagination.util";
+import {GetAllSubmissionResponseDto} from "./dto/get-all-submission-response.dto";
+import {Classwork} from "../courses/schemas/classwork.schema";
 
 @Injectable()
 export class AssignmentSubmissionsService {
@@ -71,6 +75,7 @@ export class AssignmentSubmissionsService {
             await this.assignmentSubmissionsRepository
                 .createSubmission({
                     submittedAt: now,
+                    hasFullMark: !savedAssignment.enablePlagiarismCheck,
                     neededReview: false,
                     student: studentId,
                     assignment: savedAssignment._id,
@@ -115,34 +120,59 @@ export class AssignmentSubmissionsService {
     }
 
     async getAllSubmissions(
-        assignmentId: Types.ObjectId
-    ): Promise<AppResponseDto<SubmissionResponseDto[]>> {
-        const savedSubmissions = await this.assignmentSubmissionsRepository.findAll({
+        assignmentId: Types.ObjectId,
+        paginationQuery: PaginationQueryDto
+    ): Promise<AppResponseDto<GetAllSubmissionResponseDto>> {
+        const {page, size} = paginationQuery;
+        const skip: number = (page - 1) * size;
+
+        const {savedSubmissions, totalElements} = await this.assignmentSubmissionsRepository.findAllPaginated({
                 assignment: assignmentId,
             },
             {submittedItems: false},
             [
                 {path: 'assignment', select: 'classworkId'},
                 {path: 'student', select: 'name academicId profilePic'},
-            ]
+            ],
+            size,
+            skip,
         );
 
         const savedCourse = await this.coursesRepository.findCourse({
-                _id: savedSubmissions[0].course,
+                _id: savedSubmissions[0]?.course,
             },
             {classwork: true}
         );
 
-        const classworkId: Types.ObjectId = (savedSubmissions[0].assignment as unknown as Assignment).classworkId;
-        const points: number = savedCourse!.classwork
+        const classworkId: Types.ObjectId = (savedSubmissions[0]?.assignment as unknown as Assignment)?.classworkId;
+        const points: number | undefined = savedCourse?.classwork
             .find(cw => cw._id!.equals(classworkId))!
             .points;
 
-        const appResponse: AppResponseDto<SubmissionResponseDto[]> = {
-            status: HttpStatusText.SUCCESS,
-            data: savedSubmissions.map(sub =>
+        const marked: number = await this.assignmentSubmissionsRepository.countSubmissions({
+            assignment: assignmentId,
+            neededReview: false,
+        });
+        const unmarked: number = await this.assignmentSubmissionsRepository.countSubmissions({
+            assignment: assignmentId,
+            neededReview: true,
+        });
+
+        const response: GetAllSubmissionResponseDto = {
+            stats: {
+                submitted: totalElements,
+                marked: marked,
+                unmarked: unmarked,
+            },
+            submissions: savedSubmissions.map(sub =>
                 this.assignmentSubmissionsMapper.toSubmissionResponse(sub, points)
             ),
+        };
+
+        const appResponse: AppResponseDto<GetAllSubmissionResponseDto> = {
+            status: HttpStatusText.SUCCESS,
+            data: response,
+            pagination: constructPagination(totalElements, page, size),
         };
 
         return appResponse;
@@ -198,13 +228,71 @@ export class AssignmentSubmissionsService {
 
         await this.assignmentSubmissionsRepository.updateSubmission({_id: submissionId},
             {
-                $set: {neededReview: false},
+                $set: {
+                    neededReview: false,
+                    hasFullMark: submissionAction.action === SubmissionActionStatus.APPROVED,
+                },
             }
         );
 
         const appResponse: AppResponseDto<null> = {
             status: HttpStatusText.SUCCESS,
             message: 'Submission graded successfully',
+            data: null,
+        };
+
+        return appResponse;
+    }
+
+    async approveAllSubmissions(
+        assignmentId: Types.ObjectId
+    ): Promise<AppResponseDto<null>> {
+        const savedSubmissions = await this.assignmentSubmissionsRepository.findAll({
+            assignment: assignmentId
+        });
+        const savedAssignment = await this.assignmentsRepository.findOne({
+                _id: assignmentId
+            },
+            [
+                {path: 'course', select: 'classwork'},
+            ]
+        );
+
+        const classworkId: Types.ObjectId = savedAssignment!.classworkId;
+        const classwork: Classwork[] = (savedAssignment!.course as unknown as Course).classwork;
+        const points: number = classwork
+            .find(cw => cw._id!.equals(classworkId))!
+            .points;
+
+        await this.assignmentSubmissionsRepository.updateManySubmissions({
+            assignment: assignmentId,
+        }, {
+            $set: {
+                neededReview: false,
+                hasFullMark: true,
+            },
+        });
+
+        const grades = savedSubmissions.map(sub => ({
+            updateOne: {
+                filter: {
+                    student: sub.student,
+                    course: sub.course,
+                    classworkId: classworkId,
+                },
+                update: {
+                    $set: {score: points},
+                    $setOnInsert: {maxScore: points}
+                },
+                upsert: true,
+            }
+        }));
+
+        await this.gradesRepository.createManyGrades(grades);
+
+        const appResponse: AppResponseDto<null> = {
+            status: HttpStatusText.SUCCESS,
+            message: 'All submissions graded successfully',
             data: null,
         };
 

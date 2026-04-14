@@ -11,6 +11,8 @@ import {Roles} from "../../common/decorators/roles.decorator";
 import {UserRoles} from "../roles/enums/user-roles.enum";
 import {IsAssignmentOwnerGuard} from "../assignments/guards/is-assignment-owner.guard";
 import {GradedSubmissionRequestDto} from "../assignment-submissions/dto/graded-submission-request.dto";
+import {PaginationQueryDto} from "../../common/dto/pagination-query.dto";
+import {GetAllSubmissionResponseDto} from "../assignment-submissions/dto/get-all-submission-response.dto";
 
 @ApiBearerAuth('access-token')
 @Controller('api/v1/instructor')
@@ -23,11 +25,12 @@ export class InstructorAssignmentSubmissionsController {
 
     @Get('assignments/:assignmentId/submissions')
     @UseGuards(IsAssignmentOwnerGuard)
-    @ApiResponse({type: [SubmissionResponseDto]})
+    @ApiResponse({type: GetAllSubmissionResponseDto})
     getAllSubmissions(
         @Param('assignmentId', ParseObjectIdPipe) assignmentId: Types.ObjectId,
-    ): Promise<AppResponseDto<SubmissionResponseDto[]>> {
-        return this.assignmentSubmissionsService.getAllSubmissions(assignmentId);
+        @Query() paginationQuery: PaginationQueryDto
+    ): Promise<AppResponseDto<GetAllSubmissionResponseDto>> {
+        return this.assignmentSubmissionsService.getAllSubmissions(assignmentId, paginationQuery);
     }
 
     @Get('assignment-submissions/:submissionId')
@@ -44,6 +47,14 @@ export class InstructorAssignmentSubmissionsController {
         @Body() submissionAction: GradedSubmissionRequestDto
     ): Promise<AppResponseDto<null>> {
         return this.assignmentSubmissionsService.gradeAssignmentSubmission(submissionId, submissionAction);
+    }
+
+    @Post('assignments/:assignmentId/submissions/approve-all')
+    @UseGuards(IsAssignmentOwnerGuard)
+    approveAllSubmissions(
+        @Param('assignmentId', ParseObjectIdPipe) assignmentId: Types.ObjectId,
+    ): Promise<AppResponseDto<null>> {
+        return this.assignmentSubmissionsService.approveAllSubmissions(assignmentId)
     }
 
 }
