@@ -34,9 +34,10 @@ export class AssignmentsMapper {
             createdAt: assignment.createdAt!.toLocaleString(),
             dueDate: assignment.dueDate.toLocaleString(),
             points: classwork?.points || classworkPoints,
-            status: assignment.dueDate.getTime() > Date.now() ? AssignmentStatus.AVAILABLE : AssignmentStatus.CLOSED,
+            status: assignment.dueDate.getTime() > Date.now() ? AssignmentStatus.ONGOING : AssignmentStatus.CLOSED,
             enablePlagiarismCheck: assignment.enablePlagiarismCheck,
             plagiarismThreshold: assignment.plagiarismThreshold || null,
+            classworkId: assignment.classworkId.toString(),
             assignmentItems: assignmentItems
         }
     }

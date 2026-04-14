@@ -1,6 +1,6 @@
 import {FileMetadataDto} from "./file-metadata.dto";
 import {ApiProperty} from "@nestjs/swagger";
-import {ArrayMaxSize, IsArray, IsEnum, IsNotEmpty, ValidateNested} from "class-validator";
+import {ArrayMaxSize, IsArray, IsEnum, IsMongoId, IsNotEmpty, IsOptional, ValidateNested} from "class-validator";
 import {Type} from "class-transformer";
 import {MediaItemType} from "../enums/media-item-type.enum";
 
@@ -9,6 +9,11 @@ export class UploadMediaItemRequestDto {
     @IsNotEmpty()
     @IsEnum(MediaItemType, {message: `Type must be one of ${Object.values(MediaItemType).join(', ')}`})
     context: MediaItemType;
+
+    @ApiProperty()
+    @IsOptional()
+    @IsMongoId({message: 'Classwork ID must be a valid mongo id'})
+    classworkId: string;
 
     @ApiProperty({type: [FileMetadataDto]})
     @IsArray()

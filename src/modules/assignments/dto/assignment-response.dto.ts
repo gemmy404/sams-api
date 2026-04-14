@@ -2,6 +2,7 @@ import {ApiProperty} from "@nestjs/swagger";
 import {ValidateNested} from "class-validator";
 import {MediaItemsResponseDto} from "../../materials/dto/media-items-response.dto";
 import {AssignmentStatus} from "../enums/assignment-status";
+import {AssignmentSubmissionStatus} from "../../assignment-submissions/enums/assignment-submission.status.enum";
 
 export class AssignmentResponseDto {
     @ApiProperty()
@@ -22,8 +23,11 @@ export class AssignmentResponseDto {
     @ApiProperty()
     points: number;
 
-    @ApiProperty({enum: AssignmentStatus})
-    status: AssignmentStatus;
+    @ApiProperty({enum: AssignmentStatus || AssignmentSubmissionStatus})
+    status: AssignmentStatus | AssignmentSubmissionStatus;
+
+    @ApiProperty()
+    classworkId: string;
 
     @ApiProperty({default: false})
     enablePlagiarismCheck: boolean;

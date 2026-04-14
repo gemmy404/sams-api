@@ -178,6 +178,7 @@ export class QuestionsService {
             {
                 $set: {
                     gradingType: gradingType,
+                    isPublished: allQuestions.length !== 0,
                 },
                 $inc: {
                     numberOfQuestions: -1,

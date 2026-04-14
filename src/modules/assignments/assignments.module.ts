@@ -1,4 +1,4 @@
-import {Module} from '@nestjs/common';
+import {forwardRef, Module} from '@nestjs/common';
 import {AssignmentsService} from './assignments.service';
 import {AssignmentsController} from './assignments.controller';
 import {MongooseModule} from "@nestjs/mongoose";
@@ -8,6 +8,7 @@ import {AssignmentsMapper} from "./assignments.mapper";
 import {CoursesModule} from "../courses/courses.module";
 import {MaterialsModule} from "../materials/materials.module";
 import {S3Module} from "../s3/s3.module";
+import {AssignmentSubmissionsModule} from "../assignment-submissions/assignment-submissions.module";
 
 @Module({
     imports: [
@@ -17,6 +18,7 @@ import {S3Module} from "../s3/s3.module";
         CoursesModule,
         MaterialsModule,
         S3Module,
+        forwardRef(() => AssignmentSubmissionsModule),
     ],
     controllers: [AssignmentsController],
     providers: [AssignmentsRepository, AssignmentsService, AssignmentsMapper],

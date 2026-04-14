@@ -17,6 +17,6 @@ export class MediaItemsRequestDto {
 
     @ApiProperty()
     @IsNotEmpty({message: 'Content reference file name is required'})
-    @MaxLength(100, {message: 'Content reference must not exceed 100 characters'})
+    @MaxLength(400, {message: 'Content reference must not exceed 400 characters'})
     contentReference: string;
 }

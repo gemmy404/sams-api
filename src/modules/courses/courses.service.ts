@@ -18,6 +18,7 @@ import {UploadMediaItemRequestDto} from "../../common/dto/upload-media-item-requ
 import {CreateUploadUrlResponseDto} from "../s3/dto/create-upload-url-response.dto";
 import {FileMetadataDto} from "../../common/dto/file-metadata.dto";
 import {S3Service} from "../s3/s3.service";
+import {MediaItemType} from "../../common/enums/media-item-type.enum";
 
 @Injectable()
 export class CoursesService {
@@ -62,7 +63,8 @@ export class CoursesService {
 
     async createUploadUrls(
         courseId: Types.ObjectId,
-        uploadMediaRequest: UploadMediaItemRequestDto
+        uploadMediaRequest: UploadMediaItemRequestDto,
+        currentUser: CurrentUserDto
     ): Promise<AppResponseDto<CreateUploadUrlResponseDto[]>> {
         const filesMetadata = uploadMediaRequest.filesMetadata;
         const context = uploadMediaRequest.context;
@@ -74,12 +76,34 @@ export class CoursesService {
             throw new NotFoundException('Course not found');
         }
 
+        if (context !== MediaItemType.MATERIAL && !uploadMediaRequest.classworkId) {
+            throw new BadRequestException('Classwork ID is required for this context');
+        }
+
+        const isClassworkExists = savedCourse.classwork
+            .some(cw => cw._id!.toString() === uploadMediaRequest.classworkId);
+        if (uploadMediaRequest.classworkId && !isClassworkExists) {
+            throw new NotFoundException('Classwork not found');
+        }
+
+        const cId: string = courseId.toString();
+        const cwId: string = uploadMediaRequest.classworkId;
+        const userId: string = currentUser._id;
+        let folderName: string = `courses/${cId}/${context}`;
+        const fileNamePrefix: string = Date.now().toString();
+
+        if (context === MediaItemType.ASSIGNMENT) {
+            folderName += `/${cwId}`;
+        } else if (context === MediaItemType.ASSIGNMENT_SUBMISSION) {
+            folderName = `courses/${cId}/assignments/${cwId}/submissions/${userId}`;
+        }
+
         const res = await Promise.all(filesMetadata.map(async (file: FileMetadataDto) =>
             await this.s3Service.generateUploadUrl(
                 file.originalFileName,
                 file.contentType,
-                `${context}/${courseId.toString()}`,
-                `${Date.now()}`,
+                folderName,
+                fileNamePrefix,
             )
         ));
 

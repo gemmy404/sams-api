@@ -24,7 +24,7 @@ export class MediaItem {
     @Prop({
         type: String,
         required: false,
-        maxlength: [100, 'Content reference must not exceed 100 characters'],
+        maxlength: [400, 'Content reference must not exceed 400 characters'],
     })
     contentReference: string;
 }
