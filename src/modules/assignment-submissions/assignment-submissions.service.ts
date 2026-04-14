@@ -17,6 +17,9 @@ import {AssignmentSubmission} from "./schemas/assignment-submissions.schema";
 import {GradedSubmissionRequestDto} from "./dto/graded-submission-request.dto";
 import {SubmissionActionStatus} from "./enums/submission-action-status.enum";
 import {Grade} from "../grades/schemas/grades.schema";
+import {PaginationQueryDto} from "../../common/dto/pagination-query.dto";
+import {constructPagination} from "../../common/utils/pagination.util";
+import {GetAllSubmissionResponseDto} from "./dto/get-all-submission-response.dto";
 
 @Injectable()
 export class AssignmentSubmissionsService {
@@ -115,34 +118,59 @@ export class AssignmentSubmissionsService {
     }
 
     async getAllSubmissions(
-        assignmentId: Types.ObjectId
-    ): Promise<AppResponseDto<SubmissionResponseDto[]>> {
-        const savedSubmissions = await this.assignmentSubmissionsRepository.findAll({
+        assignmentId: Types.ObjectId,
+        paginationQuery: PaginationQueryDto
+    ): Promise<AppResponseDto<GetAllSubmissionResponseDto>> {
+        const {page, size} = paginationQuery;
+        const skip: number = (page - 1) * size;
+
+        const {savedSubmissions, totalElements} = await this.assignmentSubmissionsRepository.findAllPaginated({
                 assignment: assignmentId,
             },
             {submittedItems: false},
             [
                 {path: 'assignment', select: 'classworkId'},
                 {path: 'student', select: 'name academicId profilePic'},
-            ]
+            ],
+            size,
+            skip,
         );
 
         const savedCourse = await this.coursesRepository.findCourse({
-                _id: savedSubmissions[0].course,
+                _id: savedSubmissions[0]?.course,
             },
             {classwork: true}
         );
 
-        const classworkId: Types.ObjectId = (savedSubmissions[0].assignment as unknown as Assignment).classworkId;
-        const points: number = savedCourse!.classwork
+        const classworkId: Types.ObjectId = (savedSubmissions[0]?.assignment as unknown as Assignment)?.classworkId;
+        const points: number | undefined = savedCourse?.classwork
             .find(cw => cw._id!.equals(classworkId))!
             .points;
 
-        const appResponse: AppResponseDto<SubmissionResponseDto[]> = {
-            status: HttpStatusText.SUCCESS,
-            data: savedSubmissions.map(sub =>
+        const marked: number = await this.assignmentSubmissionsRepository.countSubmissions({
+            assignment: assignmentId,
+            neededReview: false,
+        });
+        const unmarked: number = await this.assignmentSubmissionsRepository.countSubmissions({
+            assignment: assignmentId,
+            neededReview: true,
+        });
+
+        const response: GetAllSubmissionResponseDto = {
+            stats: {
+                submitted: totalElements,
+                marked: marked,
+                unmarked: unmarked,
+            },
+            submissions: savedSubmissions.map(sub =>
                 this.assignmentSubmissionsMapper.toSubmissionResponse(sub, points)
             ),
+        };
+
+        const appResponse: AppResponseDto<GetAllSubmissionResponseDto> = {
+            status: HttpStatusText.SUCCESS,
+            data: response,
+            pagination: constructPagination(totalElements, page, size),
         };
 
         return appResponse;
