@@ -7,6 +7,11 @@ import {AssignmentsRepository} from "../assignments/assignments.repository";
 import {MaterialsService} from "../materials/materials.service";
 import {AppResponseDto} from "../../common/dto/app-response.dto";
 import {HttpStatusText} from "../../common/enums/http-status-text.enum";
+import {CoursesRepository} from "../courses/courses.repository";
+import {Assignment} from "../assignments/schemas/assignments.schema";
+import {AssignmentSubmissionsMapper} from "./assignment-submissions.mapper";
+import {SubmissionResponseDto} from "./dto/submission-response.dto";
+import {Course} from "../courses/schemas/courses.schema";
 
 @Injectable()
 export class AssignmentSubmissionsService {
@@ -14,7 +19,9 @@ export class AssignmentSubmissionsService {
     constructor(
         private readonly assignmentSubmissionsRepository: AssignmentSubmissionsRepository,
         private readonly assignmentsRepository: AssignmentsRepository,
+        private readonly coursesRepository: CoursesRepository,
         private readonly materialsService: MaterialsService,
+        private readonly assignmentSubmissionsMapper: AssignmentSubmissionsMapper,
     ) {
     }
 
@@ -97,6 +104,70 @@ export class AssignmentSubmissionsService {
             message: 'Submission deleted successfully',
             data: null,
         }
+
+        return appResponse;
+    }
+
+    async getAllSubmissions(
+        assignmentId: Types.ObjectId
+    ): Promise<AppResponseDto<SubmissionResponseDto[]>> {
+        const savedSubmissions = await this.assignmentSubmissionsRepository.findAll({
+                assignment: assignmentId,
+            },
+            {submittedItems: false},
+            [
+                {path: 'assignment', select: 'classworkId'},
+                {path: 'student', select: 'name academicId profilePic'},
+            ]
+        );
+
+        const savedCourse = await this.coursesRepository.findCourse({
+                _id: savedSubmissions[0].course,
+            },
+            {classwork: true}
+        );
+
+        const classworkId: Types.ObjectId = (savedSubmissions[0].assignment as unknown as Assignment).classworkId;
+        const points: number = savedCourse!.classwork
+            .find(cw => cw._id!.equals(classworkId))!
+            .points;
+
+        const appResponse: AppResponseDto<SubmissionResponseDto[]> = {
+            status: HttpStatusText.SUCCESS,
+            data: savedSubmissions.map(sub =>
+                this.assignmentSubmissionsMapper.toSubmissionResponse(sub, points)
+            ),
+        };
+
+        return appResponse;
+    }
+
+    async getSubmissionDetails(
+        submissionId: Types.ObjectId
+    ): Promise<AppResponseDto<SubmissionResponseDto>> {
+        const savedSubmission = await this.assignmentSubmissionsRepository.findOne({
+                _id: submissionId,
+            },
+            [
+                {path: 'assignment', select: 'classworkId'},
+                {path: 'course', select: 'classwork'},
+                {path: 'student', select: 'name academicId profilePic'},
+            ]
+        );
+        if (!savedSubmission) {
+            throw new NotFoundException('Submission not found');
+        }
+
+        const classworkId: Types.ObjectId = (savedSubmission.assignment as unknown as Assignment).classworkId;
+        const classwork = (savedSubmission.course as unknown as Course).classwork;
+        const points: number = classwork
+            .find(cw => cw._id!.equals(classworkId))!
+            .points;
+
+        const appResponse: AppResponseDto<SubmissionResponseDto> = {
+            status: HttpStatusText.SUCCESS,
+            data: this.assignmentSubmissionsMapper.toSubmissionResponse(savedSubmission, points),
+        };
 
         return appResponse;
     }
