@@ -13,6 +13,10 @@ export class GradesRepository {
         return this.gradesModel.create(grade);
     }
 
+    async findOne(query: QueryFilter<Grade>) {
+        return this.gradesModel.findOne(query);
+    }
+
     async findAll(query: QueryFilter<Grade>, populated: PopulateOptions[] = []) {
         return this.gradesModel.find(query)
             .populate(populated);
