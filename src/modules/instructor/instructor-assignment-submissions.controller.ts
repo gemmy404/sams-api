@@ -49,4 +49,12 @@ export class InstructorAssignmentSubmissionsController {
         return this.assignmentSubmissionsService.gradeAssignmentSubmission(submissionId, submissionAction);
     }
 
+    @Post('assignments/:assignmentId/submissions/approve-all')
+    @UseGuards(IsAssignmentOwnerGuard)
+    approveAllSubmissions(
+        @Param('assignmentId', ParseObjectIdPipe) assignmentId: Types.ObjectId,
+    ): Promise<AppResponseDto<null>> {
+        return this.assignmentSubmissionsService.approveAllSubmissions(assignmentId)
+    }
+
 }

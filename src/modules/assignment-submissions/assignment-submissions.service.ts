@@ -20,6 +20,7 @@ import {Grade} from "../grades/schemas/grades.schema";
 import {PaginationQueryDto} from "../../common/dto/pagination-query.dto";
 import {constructPagination} from "../../common/utils/pagination.util";
 import {GetAllSubmissionResponseDto} from "./dto/get-all-submission-response.dto";
+import {Classwork} from "../courses/schemas/classwork.schema";
 
 @Injectable()
 export class AssignmentSubmissionsService {
@@ -237,6 +238,61 @@ export class AssignmentSubmissionsService {
         const appResponse: AppResponseDto<null> = {
             status: HttpStatusText.SUCCESS,
             message: 'Submission graded successfully',
+            data: null,
+        };
+
+        return appResponse;
+    }
+
+    async approveAllSubmissions(
+        assignmentId: Types.ObjectId
+    ): Promise<AppResponseDto<null>> {
+        const savedSubmissions = await this.assignmentSubmissionsRepository.findAll({
+            assignment: assignmentId
+        });
+        const savedAssignment = await this.assignmentsRepository.findOne({
+                _id: assignmentId
+            },
+            [
+                {path: 'course', select: 'classwork'},
+            ]
+        );
+
+        const classworkId: Types.ObjectId = savedAssignment!.classworkId;
+        const classwork: Classwork[] = (savedAssignment!.course as unknown as Course).classwork;
+        const points: number = classwork
+            .find(cw => cw._id!.equals(classworkId))!
+            .points;
+
+        await this.assignmentSubmissionsRepository.updateManySubmissions({
+            assignment: assignmentId,
+        }, {
+            $set: {
+                neededReview: false,
+                hasFullMark: true,
+            },
+        });
+
+        const grades = savedSubmissions.map(sub => ({
+            updateOne: {
+                filter: {
+                    student: sub.student,
+                    course: sub.course,
+                    classworkId: classworkId,
+                },
+                update: {
+                    $set: {score: points},
+                    $setOnInsert: {maxScore: points}
+                },
+                upsert: true,
+            }
+        }));
+
+        await this.gradesRepository.createManyGrades(grades);
+
+        const appResponse: AppResponseDto<null> = {
+            status: HttpStatusText.SUCCESS,
+            message: 'All submissions graded successfully',
             data: null,
         };
 
