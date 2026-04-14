@@ -1,4 +1,4 @@
-import {Controller, Get, Param, UseGuards} from "@nestjs/common";
+import {Body, Controller, Get, Param, Post, Query, UseGuards} from "@nestjs/common";
 import {JwtAuthGuard} from "../auth/guards/jwt-auth.guard";
 import {RolesGuard} from "../auth/guards/roles.guard";
 import {AssignmentSubmissionsService} from "../assignment-submissions/assignment-submissions.service";
@@ -10,6 +10,7 @@ import {ApiBearerAuth, ApiResponse} from "@nestjs/swagger";
 import {Roles} from "../../common/decorators/roles.decorator";
 import {UserRoles} from "../roles/enums/user-roles.enum";
 import {IsAssignmentOwnerGuard} from "../assignments/guards/is-assignment-owner.guard";
+import {GradedSubmissionRequestDto} from "../assignment-submissions/dto/graded-submission-request.dto";
 
 @ApiBearerAuth('access-token')
 @Controller('api/v1/instructor')
@@ -35,6 +36,14 @@ export class InstructorAssignmentSubmissionsController {
         @Param('submissionId', ParseObjectIdPipe) submissionId: Types.ObjectId,
     ): Promise<AppResponseDto<SubmissionResponseDto>> {
         return this.assignmentSubmissionsService.getSubmissionDetails(submissionId);
+    }
+
+    @Post('assignment-submissions/:submissionId/grade')
+    gradeAssignmentSubmission(
+        @Param('submissionId', ParseObjectIdPipe) submissionId: Types.ObjectId,
+        @Body() submissionAction: GradedSubmissionRequestDto
+    ): Promise<AppResponseDto<null>> {
+        return this.assignmentSubmissionsService.gradeAssignmentSubmission(submissionId, submissionAction);
     }
 
 }

@@ -8,6 +8,7 @@ import {AssignmentsModule} from "../assignments/assignments.module";
 import {MaterialsModule} from "../materials/materials.module";
 import {CoursesModule} from "../courses/courses.module";
 import {AssignmentSubmissionsMapper} from "./assignment-submissions.mapper";
+import {GradesModule} from "../grades/grades.module";
 
 @Module({
     imports: [
@@ -17,6 +18,7 @@ import {AssignmentSubmissionsMapper} from "./assignment-submissions.mapper";
         forwardRef(() => AssignmentsModule),
         MaterialsModule,
         CoursesModule,
+        GradesModule,
     ],
     controllers: [AssignmentSubmissionsController],
     providers: [AssignmentSubmissionsRepository, AssignmentSubmissionsService, AssignmentSubmissionsMapper,],

@@ -12,6 +12,11 @@ import {Assignment} from "../assignments/schemas/assignments.schema";
 import {AssignmentSubmissionsMapper} from "./assignment-submissions.mapper";
 import {SubmissionResponseDto} from "./dto/submission-response.dto";
 import {Course} from "../courses/schemas/courses.schema";
+import {GradesRepository} from "../grades/grades.repository";
+import {AssignmentSubmission} from "./schemas/assignment-submissions.schema";
+import {GradedSubmissionRequestDto} from "./dto/graded-submission-request.dto";
+import {SubmissionActionStatus} from "./enums/submission-action-status.enum";
+import {Grade} from "../grades/schemas/grades.schema";
 
 @Injectable()
 export class AssignmentSubmissionsService {
@@ -20,6 +25,7 @@ export class AssignmentSubmissionsService {
         private readonly assignmentSubmissionsRepository: AssignmentSubmissionsRepository,
         private readonly assignmentsRepository: AssignmentsRepository,
         private readonly coursesRepository: CoursesRepository,
+        private readonly gradesRepository: GradesRepository,
         private readonly materialsService: MaterialsService,
         private readonly assignmentSubmissionsMapper: AssignmentSubmissionsMapper,
     ) {
@@ -170,6 +176,68 @@ export class AssignmentSubmissionsService {
         };
 
         return appResponse;
+    }
+
+    async gradeAssignmentSubmission(
+        submissionId: Types.ObjectId,
+        submissionAction: GradedSubmissionRequestDto
+    ): Promise<AppResponseDto<null>> {
+        const savedSubmission = await this.assignmentSubmissionsRepository.findOne({
+                _id: submissionId,
+            },
+            [
+                {path: 'assignment', select: 'classworkId'},
+                {path: 'course', select: 'classwork'},
+            ]
+        );
+        if (!savedSubmission) {
+            throw new NotFoundException('Submission not found');
+        }
+
+        await this.insertGrade(savedSubmission, submissionAction.action);
+
+        await this.assignmentSubmissionsRepository.updateSubmission({_id: submissionId},
+            {
+                $set: {neededReview: false},
+            }
+        );
+
+        const appResponse: AppResponseDto<null> = {
+            status: HttpStatusText.SUCCESS,
+            message: 'Submission graded successfully',
+            data: null,
+        };
+
+        return appResponse;
+    }
+
+    private async insertGrade(
+        savedSubmission: AssignmentSubmission,
+        submissionAction: SubmissionActionStatus,
+    ): Promise<void> {
+        const classworkId: Types.ObjectId = (savedSubmission.assignment as unknown as Assignment).classworkId;
+        const classwork = (savedSubmission.course as unknown as Course).classwork;
+        const points: number = classwork
+            .find(cw => cw._id!.equals(classworkId))!
+            .points;
+
+        const savedGrade = await this.gradesRepository.findOne({
+            student: savedSubmission.student,
+            course: savedSubmission.course._id,
+            classworkId: classworkId,
+        });
+        if (savedGrade) {
+            throw new BadRequestException('You have already graded this submission');
+        }
+
+        const grade: Grade = {
+            student: savedSubmission.student,
+            course: savedSubmission.course,
+            classworkId: classworkId,
+            score: submissionAction === SubmissionActionStatus.APPROVED ? points : 0,
+            maxScore: points,
+        };
+        await this.gradesRepository.createGrade(grade);
     }
 
 }
