@@ -37,7 +37,7 @@ export class AssignmentSubmissionsMapper {
             submittedItems: submittedItems,
             neededReview: submission.neededReview,
             points: classworkPoints,
-            earnedPoints: submission.neededReview ? 0 : classworkPoints,
+            earnedPoints: submission.hasFullMark ? classworkPoints : 0,
         }
     }
 }

@@ -18,6 +18,12 @@ export class AssignmentSubmission {
 
     @Prop({
         type: Boolean,
+        required: true,
+    })
+    hasFullMark: boolean;
+
+    @Prop({
+        type: Boolean,
         required: false,
         default: false,
     })

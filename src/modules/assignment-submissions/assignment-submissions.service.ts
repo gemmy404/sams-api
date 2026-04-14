@@ -74,6 +74,7 @@ export class AssignmentSubmissionsService {
             await this.assignmentSubmissionsRepository
                 .createSubmission({
                     submittedAt: now,
+                    hasFullMark: !savedAssignment.enablePlagiarismCheck,
                     neededReview: false,
                     student: studentId,
                     assignment: savedAssignment._id,
@@ -226,7 +227,10 @@ export class AssignmentSubmissionsService {
 
         await this.assignmentSubmissionsRepository.updateSubmission({_id: submissionId},
             {
-                $set: {neededReview: false},
+                $set: {
+                    neededReview: false,
+                    hasFullMark: submissionAction.action === SubmissionActionStatus.APPROVED,
+                },
             }
         );
 
