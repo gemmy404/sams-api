@@ -76,7 +76,7 @@ export class AssignmentSubmissionsService {
                 .createSubmission({
                     submittedAt: now,
                     hasFullMark: !savedAssignment.enablePlagiarismCheck,
-                    neededReview: false,
+                    neededReview: savedAssignment.enablePlagiarismCheck,
                     student: studentId,
                     assignment: savedAssignment._id,
                     course: savedAssignment.course,
@@ -98,8 +98,12 @@ export class AssignmentSubmissionsService {
         currentUser: CurrentUserDto
     ): Promise<AppResponseDto<null>> {
         const savedSubmission = await this.assignmentSubmissionsRepository.findOne({
-            _id: submissionId,
-        });
+                _id: submissionId,
+            },
+            [
+                {path: 'assignment', select: 'classworkId'},
+            ]
+        );
         if (!savedSubmission) {
             throw new NotFoundException('Submission not found');
         }
@@ -109,6 +113,12 @@ export class AssignmentSubmissionsService {
         }
 
         await this.assignmentSubmissionsRepository.deleteAndReturn({_id: submissionId});
+
+        await this.gradesRepository.deleteGrade({
+            student: savedSubmission.student,
+            course: savedSubmission.course,
+            classworkId: (savedSubmission.assignment as unknown as Assignment).classworkId,
+        });
 
         const appResponse: AppResponseDto<null> = {
             status: HttpStatusText.SUCCESS,
