@@ -21,6 +21,8 @@ import {PaginationQueryDto} from "../../common/dto/pagination-query.dto";
 import {constructPagination} from "../../common/utils/pagination.util";
 import {GetAllSubmissionResponseDto} from "./dto/get-all-submission-response.dto";
 import {Classwork} from "../courses/schemas/classwork.schema";
+import {getStaticUrl} from "../../common/utils/get-static-url.util";
+import {SimilarityResult} from "../similarity/schemas/similarity-result.schema";
 
 @Injectable()
 export class AssignmentSubmissionsService {
@@ -307,6 +309,82 @@ export class AssignmentSubmissionsService {
         };
 
         return appResponse;
+    }
+
+    async prepareAIPayload(assignmentId: Types.ObjectId) {
+        const savedSubmissions = await this.assignmentSubmissionsRepository.findAll({
+            assignment: assignmentId
+        });
+
+        const payload = {
+            assignmentId: assignmentId.toString(),
+            submissions: savedSubmissions.map(sub => ({
+                studentId: sub.student.toString(),
+                submissionId: sub._id.toString(),
+                fileUrl: getStaticUrl(sub.submittedItems[0].contentReference)
+            })),
+        };
+
+        return payload;
+    }
+
+    async processPlagiarismResults(assignmentId: Types.ObjectId, results: SimilarityResult[]) {
+        const savedAssignment = await this.assignmentsRepository.findOne({
+                _id: assignmentId
+            },
+            [
+                {path: 'course', select: 'classwork'},
+            ]
+        );
+        const plagiarismThreshold: number = savedAssignment!.plagiarismThreshold;
+
+        const bulkOps = results.map(res => {
+            const isPlagiarized = res.matches.some(m => m.similarityPercentage >= plagiarismThreshold);
+            return {
+                updateOne: {
+                    filter: {
+                        _id: new Types.ObjectId(res.submission),
+                    },
+                    update: {
+                        $set: {
+                            neededReview: isPlagiarized,
+                            hasFullMark: !isPlagiarized,
+                        },
+                    },
+                }
+            };
+        });
+
+        await this.assignmentSubmissionsRepository.bulkUpdateSubmissions(bulkOps);
+
+        const savedSubmissions = await this.assignmentSubmissionsRepository.findAll({
+            assignment: assignmentId,
+            neededReview: false,
+            hasFullMark: true,
+        });
+
+        const classworkId: Types.ObjectId = savedAssignment!.classworkId;
+        const classwork: Classwork[] = (savedAssignment!.course as unknown as Course).classwork;
+        const points: number = classwork
+            .find(cw => cw._id!.equals(classworkId))!
+            .points;
+
+        const grades = savedSubmissions.map(sub => ({
+            updateOne: {
+                filter: {
+                    student: sub.student,
+                    course: sub.course,
+                    classworkId: classworkId,
+                },
+                update: {
+                    $set: {score: points},
+                    $setOnInsert: {maxScore: points}
+                },
+                upsert: true,
+            }
+        }));
+
+        await this.gradesRepository.createManyGrades(grades);
     }
 
     private async insertGrade(
