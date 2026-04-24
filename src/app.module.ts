@@ -25,6 +25,7 @@ import {CommentsModule} from './modules/comments/comments.module';
 import {GradesModule} from './modules/grades/grades.module';
 import {AssignmentsModule} from './modules/assignments/assignments.module';
 import {AssignmentSubmissionsModule} from './modules/assignment-submissions/assignment-submissions.module';
+import {SimilarityModule} from './modules/similarity/similarity.module';
 
 @Module({
     imports: [
@@ -66,6 +67,7 @@ import {AssignmentSubmissionsModule} from './modules/assignment-submissions/assi
         GradesModule,
         AssignmentsModule,
         AssignmentSubmissionsModule,
+        SimilarityModule,
     ],
     providers: [
         {
