@@ -13,6 +13,8 @@ import {IsAssignmentOwnerGuard} from "../assignments/guards/is-assignment-owner.
 import {GradedSubmissionRequestDto} from "../assignment-submissions/dto/graded-submission-request.dto";
 import {PaginationQueryDto} from "../../common/dto/pagination-query.dto";
 import {GetAllSubmissionResponseDto} from "../assignment-submissions/dto/get-all-submission-response.dto";
+import {SimilarityService} from "../similarity/similarity.service";
+import {SimilarityReportResponseDto} from "../similarity/dto/similarity-report-response.dto";
 
 @ApiBearerAuth('access-token')
 @Controller('api/v1/instructor')
@@ -20,7 +22,10 @@ import {GetAllSubmissionResponseDto} from "../assignment-submissions/dto/get-all
 @Roles(UserRoles.INSTRUCTOR)
 export class InstructorAssignmentSubmissionsController {
 
-    constructor(private readonly assignmentSubmissionsService: AssignmentSubmissionsService) {
+    constructor(
+        private readonly assignmentSubmissionsService: AssignmentSubmissionsService,
+        private readonly similarityService: SimilarityService
+    ) {
     }
 
     @Get('assignments/:assignmentId/submissions')
@@ -47,6 +52,13 @@ export class InstructorAssignmentSubmissionsController {
         @Body() submissionAction: GradedSubmissionRequestDto
     ): Promise<AppResponseDto<null>> {
         return this.assignmentSubmissionsService.gradeAssignmentSubmission(submissionId, submissionAction);
+    }
+
+    @Get('assignment-submissions/:submissionId/similarity-report')
+    findSimilarityReportForStudent(
+        @Param('submissionId', ParseObjectIdPipe) submissionId: Types.ObjectId,
+    ): Promise<AppResponseDto<SimilarityReportResponseDto>> {
+        return this.similarityService.findSimilarityReportForStudent(submissionId);
     }
 
     @Post('assignments/:assignmentId/submissions/approve-all')

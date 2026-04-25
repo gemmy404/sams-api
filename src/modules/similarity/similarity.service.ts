@@ -1,4 +1,4 @@
-import {Injectable} from '@nestjs/common';
+import {Injectable, NotFoundException} from '@nestjs/common';
 import {InjectQueue} from "@nestjs/bullmq";
 import {Queue} from "bullmq";
 import {PlagiarismEndpointResponse} from "./dto/plagiarism-endpoint.response";
@@ -10,6 +10,7 @@ import {Types} from "mongoose";
 import {AssignmentSubmissionsRepository} from "../assignment-submissions/assignment-submissions.repository";
 import {AppResponseDto} from "../../common/dto/app-response.dto";
 import {SimilarityMapper} from "./similarity.mapper";
+import {SimilarityReportResponseDto} from "./dto/similarity-report-response.dto";
 import {AssignmentSubmissionsService} from "../assignment-submissions/assignment-submissions.service";
 import {ConfigService} from "@nestjs/config";
 
@@ -24,6 +25,29 @@ export class SimilarityService {
         private readonly similarityMapper: SimilarityMapper,
         private readonly configService: ConfigService,
     ) {
+    }
+
+    async findSimilarityReportForStudent(submissionId: Types.ObjectId): Promise<AppResponseDto<SimilarityReportResponseDto>> {
+        const savedSubmission = await this.assignmentSubmissionsRepository.findOne({
+            _id: submissionId,
+        });
+        if (!savedSubmission) {
+            throw new Error('Submission not found');
+        }
+
+        const studentReport = await this.similarityRepository
+            .findStudentReport(savedSubmission.assignment, savedSubmission._id);
+        if (!studentReport) {
+            throw new NotFoundException('Similarity report not found for this student');
+        }
+
+        const appResponse: AppResponseDto<SimilarityReportResponseDto> = {
+            status: HttpStatusText.SUCCESS,
+            data: this.similarityMapper.toSimilarityReportResponse(studentReport),
+        }
+
+        return appResponse;
+
     }
 
     async schedulePlagiarismCheck(assignmentId: string, dueDate: Date, enablePlagiarismCheck: boolean) {

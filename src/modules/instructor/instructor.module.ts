@@ -17,6 +17,7 @@ import {InstructorAssignmentController} from "./instructor-assignment.controller
 import {AssignmentsModule} from "../assignments/assignments.module";
 import {AssignmentSubmissionsModule} from "../assignment-submissions/assignment-submissions.module";
 import {InstructorAssignmentSubmissionsController} from "./instructor-assignment-submissions.controller";
+import {SimilarityModule} from "../similarity/similarity.module";
 
 @Module({
     imports: [
@@ -29,6 +30,7 @@ import {InstructorAssignmentSubmissionsController} from "./instructor-assignment
         GradesModule,
         AssignmentsModule,
         AssignmentSubmissionsModule,
+        SimilarityModule,
     ],
     controllers: [
         InstructorCourseController,
