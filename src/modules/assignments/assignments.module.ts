@@ -9,6 +9,8 @@ import {CoursesModule} from "../courses/courses.module";
 import {MaterialsModule} from "../materials/materials.module";
 import {S3Module} from "../s3/s3.module";
 import {AssignmentSubmissionsModule} from "../assignment-submissions/assignment-submissions.module";
+import {SimilarityModule} from "../similarity/similarity.module";
+import {GradesModule} from "../grades/grades.module";
 
 @Module({
     imports: [
@@ -19,6 +21,8 @@ import {AssignmentSubmissionsModule} from "../assignment-submissions/assignment-
         MaterialsModule,
         S3Module,
         forwardRef(() => AssignmentSubmissionsModule),
+        SimilarityModule,
+        GradesModule,
     ],
     controllers: [AssignmentsController],
     providers: [AssignmentsRepository, AssignmentsService, AssignmentsMapper],

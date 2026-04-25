@@ -20,6 +20,8 @@ import {AssignmentSubmissionStatus} from "../assignment-submissions/enums/assign
 import {MediaItemsResponseDto} from "../materials/dto/media-items-response.dto";
 import {getStaticUrl} from "../../common/utils/get-static-url.util";
 import {AssignmentSubmission} from "../assignment-submissions/schemas/assignment-submissions.schema";
+import {SimilarityService} from "../similarity/similarity.service";
+import {GradesRepository} from "../grades/grades.repository";
 
 @Injectable()
 export class AssignmentsService {
@@ -31,6 +33,8 @@ export class AssignmentsService {
         private readonly materialsService: MaterialsService,
         private readonly s3Service: S3Service,
         private readonly assignmentsSubmissionsRepository: AssignmentSubmissionsRepository,
+        private readonly gradesRepository: GradesRepository,
+        private readonly similarityService: SimilarityService,
     ) {
     }
 
@@ -73,6 +77,12 @@ export class AssignmentsService {
             ...addAssignmentRequest,
             course: courseId,
         } as Assignment);
+
+        await this.similarityService.schedulePlagiarismCheck(
+            createdAssignment._id.toString(),
+            createdAssignment.dueDate,
+            createdAssignment.enablePlagiarismCheck
+        );
 
         const appResponse: AppResponseDto<AssignmentResponseDto> = {
             status: HttpStatusText.SUCCESS,
@@ -171,6 +181,10 @@ export class AssignmentsService {
         );
 
         await this.assignmentsSubmissionsRepository.deleteSubmission({assignment: assignmentId});
+        await this.gradesRepository.deleteGrades({
+            course: deletedAssignment!.course,
+            classworkId: deletedAssignment!.classworkId
+        });
 
         const keys: { Key: string }[] = deletedAssignment!.assignmentItems.map(item => (
             {Key: item.contentReference}
