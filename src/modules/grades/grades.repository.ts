@@ -33,4 +33,12 @@ export class GradesRepository {
         ) {
         return this.gradesModel.findOneAndUpdate(query, updatedValue, options);
     }
+
+    async deleteGrade(query: QueryFilter<Grade>) {
+        return this.gradesModel.findOneAndDelete(query);
+    }
+
+    async deleteGrades(query: QueryFilter<Grade>) {
+        return this.gradesModel.deleteMany(query);
+    }
 }

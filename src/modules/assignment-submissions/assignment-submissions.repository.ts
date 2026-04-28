@@ -1,7 +1,7 @@
 import {AssignmentSubmission} from "./schemas/assignment-submissions.schema";
 import {Injectable} from "@nestjs/common";
 import {InjectModel} from "@nestjs/mongoose";
-import {Model, PopulateOptions, QueryFilter, UpdateQuery} from "mongoose";
+import {AnyBulkWriteOperation, Model, PopulateOptions, QueryFilter, UpdateQuery} from "mongoose";
 
 @Injectable()
 export class AssignmentSubmissionsRepository {
@@ -55,6 +55,10 @@ export class AssignmentSubmissionsRepository {
         updatedVal: UpdateQuery<AssignmentSubmission>
     ) {
         return this.assignmentSubmissionsModel.updateMany(query, updatedVal);
+    }
+
+    async bulkUpdateSubmissions(submissions: Array<AnyBulkWriteOperation<AssignmentSubmission>>) {
+        return this.assignmentSubmissionsModel.bulkWrite(submissions);
     }
 
     async deleteAndReturn(query: QueryFilter<AssignmentSubmission>) {
