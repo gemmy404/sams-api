@@ -31,6 +31,7 @@ import {MAIL_CONTENT} from "../../common/constants/mail-message.constant";
 import {ResendCodeRequestDto} from "./dto/resend-code-request.dto";
 import {RefreshTokenRequestDto} from "./dto/refresh-token-request.dto";
 import {RefreshToken} from "./schemas/refresh-token.schema";
+import {UserRoles} from "../roles/enums/user-roles.enum";
 
 @Injectable()
 export class AuthService {
@@ -112,7 +113,7 @@ export class AuthService {
     }
 
     async verifyOtp(verifyCodeRequest: VerifyCodeRequestDto) {
-        const role = await this.rolesRepository.findRoleByNameOrCreate('student');
+        const role = await this.rolesRepository.findRoleByNameOrCreate(UserRoles.STUDENT);
 
         if (verifyCodeRequest.action === VerificationType.ACTIVATE_ACCOUNT) {
             return await this.verifyRegistration(verifyCodeRequest, role);
