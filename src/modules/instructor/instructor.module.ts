@@ -18,6 +18,8 @@ import {AssignmentsModule} from "../assignments/assignments.module";
 import {AssignmentSubmissionsModule} from "../assignment-submissions/assignment-submissions.module";
 import {InstructorAssignmentSubmissionsController} from "./instructor-assignment-submissions.controller";
 import {SimilarityModule} from "../similarity/similarity.module";
+import {MeetingModule} from "../meeting/meeting.module";
+import {InstructorMeetingController} from "./instructor-meeting.controller";
 
 @Module({
     imports: [
@@ -31,6 +33,7 @@ import {SimilarityModule} from "../similarity/similarity.module";
         AssignmentsModule,
         AssignmentSubmissionsModule,
         SimilarityModule,
+        MeetingModule,
     ],
     controllers: [
         InstructorCourseController,
@@ -42,6 +45,7 @@ import {SimilarityModule} from "../similarity/similarity.module";
         InstructorGradeController,
         InstructorAssignmentController,
         InstructorAssignmentSubmissionsController,
+        InstructorMeetingController,
     ]
 })
 export class InstructorModule {
