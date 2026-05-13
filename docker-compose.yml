@@ -36,6 +36,17 @@ services:
     networks:
       - sams-net
 
+  fastapi:
+    image: eissa77/plagiarismproject:latest
+    container_name: sams-fastapi
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    networks:
+      - sams-net
+    command: uvicorn api:app --host 0.0.0.0 --port 8000
+
 volumes:
   mongo: { }
   redis-data: { }

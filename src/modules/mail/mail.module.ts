@@ -4,9 +4,9 @@ import {MailerModule} from "@nestjs-modules/mailer";
 import {ConfigService} from "@nestjs/config";
 import {MAIL_CONFIG} from "../../common/constants/mail.constant";
 import {join} from "path";
-import {HandlebarsAdapter} from "@nestjs-modules/mailer/dist/adapters/handlebars.adapter";
 import {BullModule} from "@nestjs/bullmq";
 import {MailProcessor} from "./mail.processor";
+import {HandlebarsAdapter} from "@nestjs-modules/mailer/adapters/handlebars.adapter";
 
 @Module({
     imports: [

@@ -3,6 +3,7 @@ import {RolesRepository} from "../../roles/roles.repository";
 import {ConfigService} from "@nestjs/config";
 import {UsersRepository} from "../../users/users.repository";
 import {hash} from "bcryptjs";
+import {UserRoles} from "../../roles/enums/user-roles.enum";
 
 @Injectable()
 export class SeederService implements OnApplicationBootstrap {
@@ -22,7 +23,7 @@ export class SeederService implements OnApplicationBootstrap {
     }
 
     private async seedRoles() {
-        const rolesToCreate: string[] = ['student', 'instructor', 'admin'];
+        const rolesToCreate: UserRoles[] = Object.values(UserRoles);
 
         for (const roleName of rolesToCreate) {
             const exists = await this.rolesRepository.findRole({name: roleName});
@@ -53,7 +54,7 @@ export class SeederService implements OnApplicationBootstrap {
         if (!adminExists) {
             const hashedPassword = await hash(config.password!, 10);
 
-            const adminRole = await this.rolesRepository.findRole({name: 'admin'});
+            const adminRole = await this.rolesRepository.findRole({name: UserRoles.ADMIN});
             if (!adminRole) {
                 this.logger.error('Seed Admin: Role "admin" not found. Make sure seedRoles runs first!');
                 return;
