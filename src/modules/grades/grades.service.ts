@@ -13,6 +13,7 @@ import {constructPagination} from "../../common/utils/pagination.util";
 import {CurrentUserDto} from "../../common/dto/current-user.dto";
 import {MaterialsService} from "../materials/materials.service";
 import {MyGradeResponseDto} from "./dto/my-grade-response.dto";
+import {Grade} from "./schemas/grades.schema";
 
 @Injectable()
 export class GradesService {
@@ -48,12 +49,19 @@ export class GradesService {
             skip,
             locale,
             search
-        )
+        );
+
+        const maxScores = await this.gradesRepository.findGradeMaxScoresByCourseId(
+            savedCourse!._id
+        );
+        const maxScoresMap = new Map<string, Grade>(
+            maxScores.map(ms => [ms.classworkId.toString(), ms])
+        );
 
         const appResponse: AppResponseDto<GradeResponseDto> = {
             status: HttpStatusText.SUCCESS,
             data: {
-                ...this.gradesMapper.toGradeResponse(grades, classworks),
+                ...this.gradesMapper.toGradeResponse(grades, maxScoresMap, classworks),
             },
             pagination: constructPagination(totalElements, page, size),
         };
