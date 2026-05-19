@@ -1,7 +1,7 @@
 import {Injectable} from '@nestjs/common';
 import {InjectModel} from "@nestjs/mongoose";
 import {Grade} from "./schemas/grades.schema";
-import {AnyBulkWriteOperation, Model, PopulateOptions, QueryFilter, QueryOptions, UpdateQuery} from "mongoose";
+import {AnyBulkWriteOperation, Model, PopulateOptions, QueryFilter, QueryOptions, Types, UpdateQuery} from "mongoose";
 
 @Injectable()
 export class GradesRepository {
@@ -24,6 +24,12 @@ export class GradesRepository {
     async findAll(query: QueryFilter<Grade>, populated: PopulateOptions[] = []) {
         return this.gradesModel.find(query)
             .populate(populated);
+    }
+
+    async findGradeMaxScoresByCourseId(course: Types.ObjectId) {
+        return this.gradesModel.find({course: course})
+            .sort({createdAt: -1})
+            .select({maxScore: true, classworkId: true});
     }
 
     async updateGrade(

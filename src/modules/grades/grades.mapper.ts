@@ -9,14 +9,25 @@ import {GradeColumnResponseDto} from "./dto/grade-column-response.dto";
 @Injectable()
 export class GradesMapper {
 
-    toGradeResponse(grades: GradeRowResponseDto[], classworks: Classwork[]): GradeResponseDto {
+    toGradeResponse(
+        grades: GradeRowResponseDto[],
+        maxScoresMap: Map<string, Grade>,
+        classworks: Classwork[]
+    ): GradeResponseDto {
         const processedRows = grades.map(row => {
             const studentGrades = new Map<string, number | null>();
             type GradesRecord = Record<string, number | null>;
 
             classworks.forEach(cw => {
-                studentGrades.set(cw._id!.toString(), row.grades[cw._id!.toString()] !== undefined ?
-                    row.grades[cw._id!.toString()] : null
+                const actualScore: number = row.grades[cw._id!.toString()] || 0;
+                const maxScore: number = maxScoresMap.get(cw._id!.toString())?.maxScore || 1;
+                const weight: number = cw.points;
+
+                const weightedScore = actualScore ? (actualScore / maxScore) * weight : null;
+                studentGrades.set(cw._id!.toString(),
+                    actualScore && maxScore
+                        ? Number(weightedScore!.toFixed(1))
+                        : null
                 );
             });
 
