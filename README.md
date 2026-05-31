@@ -240,7 +240,7 @@ docs/database-design/sams-erd.png
 Swagger documentation is available after running the application:
 
 ```txt
-http://localhost:3000/api/docs
+http://localhost:3000/api-docs
 ```
 
 ---
@@ -250,7 +250,7 @@ http://localhost:3000/api/docs
 ### Clone Repository
 
 ```bash
-git clone <repository-url>
+git clone https://github.com/gemmy404/sams-api.git
 cd sams-api
 ```
 
