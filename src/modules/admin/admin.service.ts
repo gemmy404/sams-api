@@ -164,6 +164,13 @@ export class AdminService {
             throw new BadRequestException('Academic ID must be identical to the prefix of your academic email');
         }
 
+        const role = await this.rolesRepository.findRole({
+            _id: new Types.ObjectId(createUserRequest.roleId),
+        });
+        if (!role) {
+            throw new NotFoundException(`Role with id: ${createUserRequest.roleId} not found`);
+        }
+
         const user = await this.usersRepository.findUser({
             $or: [
                 {academicEmail: createUserRequest.academicEmail},
