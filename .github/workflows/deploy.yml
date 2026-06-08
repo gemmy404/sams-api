@@ -30,3 +30,19 @@ jobs:
           tags: |
             ${{ secrets.DOCKERHUB_USERNAME }}/sams-app:latest
             ${{ secrets.DOCKERHUB_USERNAME }}/sams-app:${{ github.sha }}
+
+  deploy:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy to Azure VM
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.AZURE_HOST }}
+          username: ${{ secrets.AZURE_USER }}
+          key: ${{ secrets.AZURE_SSH_KEY }}
+          script: |
+            cd /home/azureuser/sams-app
+            docker compose pull app
+            docker compose up -d app

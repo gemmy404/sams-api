@@ -19,13 +19,19 @@ export class GradesMapper {
             type GradesRecord = Record<string, number | null>;
 
             classworks.forEach(cw => {
-                const actualScore: number = row.grades[cw._id!.toString()] || 0;
+                let actualScore: number | undefined = row.grades[cw._id!.toString()] || 0;
+                if (row.grades[cw._id!.toString()] === undefined) {
+
+                    actualScore = undefined;
+                    console.log("actualScore", actualScore);
+                }
+
                 const maxScore: number = maxScoresMap.get(cw._id!.toString())?.maxScore || 1;
                 const weight: number = cw.points;
 
-                const weightedScore = actualScore ? (actualScore / maxScore) * weight : null;
+                const weightedScore = actualScore !== undefined ? (actualScore / maxScore) * weight : null;
                 studentGrades.set(cw._id!.toString(),
-                    actualScore && maxScore
+                    actualScore !== undefined && maxScore
                         ? Number(weightedScore!.toFixed(1))
                         : null
                 );
@@ -67,10 +73,10 @@ export class GradesMapper {
         savedGrades: Grade[],
         classworks: Classwork[]
     ): MyGradeResponseDto {
-        const gradesMap = new Map<string, { actualScore: number | null, maxScore: number }>(
+        const gradesMap = new Map<string, { actualScore: number | undefined, maxScore: number }>(
             savedGrades.map(g => {
                 const val = {
-                    actualScore: g.score || null,
+                    actualScore: g.score >= 0 ? g.score : undefined,
                     maxScore: g.maxScore || 1,
                 }
                 return [g.classworkId.toString(), val];
@@ -78,13 +84,13 @@ export class GradesMapper {
         );
 
         return classworks.map(cw => {
-            const {actualScore, maxScore} = gradesMap.get(cw._id!.toString()) || {actualScore: null, maxScore: 1};
+            const {actualScore, maxScore} = gradesMap.get(cw._id!.toString()) || {actualScore: undefined, maxScore: 1};
             const weight = cw.points;
-            const weightedScore = actualScore ? (actualScore / maxScore) * weight : null;
+            const weightedScore = actualScore !== undefined? (actualScore / maxScore) * weight : null;
 
             return {
                 classwork: cw.name,
-                score: (actualScore && cw.isVisible) ? Number(weightedScore!.toFixed(1)) : null,
+                score: (actualScore !== undefined && cw.isVisible) ? Number(weightedScore!.toFixed(1)) : null,
                 maxScore: cw.points,
                 isVisible: cw.isVisible,
             }
