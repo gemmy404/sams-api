@@ -160,9 +160,9 @@ export class AdminService {
     }
 
     async createUser(createUserRequest: CreateUserRequestDto): Promise<AppResponseDto<null>> {
-        if (createUserRequest.academicId !== createUserRequest.academicEmail.split('@')[0]) {
-            throw new BadRequestException('Academic ID must be identical to the prefix of your academic email');
-        }
+        // if (createUserRequest.academicId !== createUserRequest.academicEmail.split('@')[0]) {
+        //     throw new BadRequestException('Academic ID must be identical to the prefix of your academic email');
+        // }
 
         const role = await this.rolesRepository.findRole({
             _id: new Types.ObjectId(createUserRequest.roleId),
