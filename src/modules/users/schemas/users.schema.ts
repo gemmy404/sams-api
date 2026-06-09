@@ -25,7 +25,7 @@ export class Users {
         type: String,
         required: true,
         unique: true,
-        minlength: [9, 'Academic id must be 9 characters'],
+        minlength: [3, 'Academic id must be 3 characters'],
         maxlength: [9, 'Academic id must be 9 characters'],
     })
     academicId: string;

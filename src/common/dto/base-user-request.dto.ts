@@ -17,6 +17,6 @@ export class BaseUserRequestDto {
 
     @ApiProperty()
     @IsNotEmpty({message: 'Academic id is required'})
-    @Length(9, 9, {message: 'Academic id must be 9 characters'})
+    @Length(3, 9, {message: 'Academic id must be 9 characters'})
     academicId: string;
 }
