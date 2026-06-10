@@ -17,7 +17,7 @@ export class Assignment {
     @Prop({
         type: String,
         required: false,
-        maxlength: [100, 'Description must not exceed 100 characters'],
+        maxlength: [2000, 'Description must not exceed 2000 characters'],
     })
     description: string;
 
