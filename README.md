@@ -1,6 +1,22 @@
-# SAMS - Smart Academic Management System
+<div align="center">
 
-SAMS is a scalable academic management platform designed to streamline teaching, learning, assessment, and grading workflows within universities.
+<img src="docs/academiax-logo.png" alt="AcademiaX Logo" width="30%"/>
+
+<br/>
+
+# AcademiaX
+
+### Smart Academic Management System
+
+*The Future of Academic Management.*
+
+</div>
+
+---
+
+## Overview
+
+AcademiaX is a scalable academic management platform designed to streamline teaching, learning, assessment, and grading workflows within universities.
 
 The system enables instructors and students to manage courses, assignments, quizzes, meetings, academic resources, and grades through a unified platform similar to Google Classroom and Microsoft Teams.
 
@@ -226,12 +242,24 @@ src
 
 ## Database Design
 
-The database schema and entity relationships can be found in:
+The database schema and entity relationships are available in the following files:
 
 ```txt
-docs/database-design/sams-erd.pdf
-docs/database-design/sams-erd.png
+docs/database-design/academiax-erd.pdf
+docs/database-design/academiax-erd.png
 ```
+
+### Entity Relationship Diagram (ERD)
+
+<p align="center">
+  <img
+    src="./docs/database-design/academiax-erd.png"
+    alt="AcademiaX Entity Relationship Diagram"
+    width="100%"
+  />
+</p>
+
+> **Note:** For a higher-resolution and zoomable version, open `docs/database-design/academiax-erd.pdf`.
 
 ---
 
@@ -250,8 +278,8 @@ http://localhost:3000/api-docs
 ### Clone Repository
 
 ```bash
-git clone https://github.com/gemmy404/sams-api.git
-cd sams-api
+git clone https://github.com/gemmy404/academiax-api.git
+cd academiax-api
 ```
 
 ### Create Environment File
@@ -362,7 +390,7 @@ The following repositories contain the client applications that integrate with t
 
 | Application | Description |
 |-------------|-------------|
-| [SAMS App](https://github.com/mohamed-dev-404/sams-app.git) | Flutter application for students and instructors. |
-| [SAMS Dashboard](https://github.com/mohamed-dev-404/sams-dashboard.git) | Web-based dashboard for platform administration. |
+| [AcademiaX App](https://github.com/mohamed-dev-404/academiax.git) | Flutter application for students and instructors. |
+| [AcademiaX Dashboard](https://github.com/mohamed-dev-404/academiax-admin-dashboard.git) | Web-based dashboard for platform administration. |
 
 ---
